@@ -73,10 +73,12 @@ function readSurvey() {
   } catch (error) {
     throw new Error(`JSON غير صالح: ${error.message}`);
   }
-  survey.layout_settings = {
+  const layoutSettings = {
     questionFontPt: clamp(fontNumber.value, 9, 18, DEFAULT_LAYOUT.questionFontPt),
     pageMarginMm: clamp(marginNumber.value, 18, 30, DEFAULT_LAYOUT.pageMarginMm),
   };
+  setLayoutControls(layoutSettings);
+  survey.layout_settings = layoutSettings;
   return survey;
 }
 
