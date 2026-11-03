@@ -14,6 +14,9 @@ const survey = {
     bodyBold: true,
     surveyTitleFontPt: 12,
     sectionTitleFontPt: 11,
+    showSurveyTitle: true,
+    surveyTitleBold: false,
+    surveyTitleAlignment: "right",
   },
   sections: [{
     id: "profile",
@@ -41,10 +44,12 @@ test("buildDocument sets independent typography and divider switches", async () 
   const html = await buildDocument(survey);
   assert.match(
     html,
-    /class="survey-document hd-title-underline section-title-no-underline hd-no-divider section-title-no-divider body-bold"/,
+    /class="survey-document hd-title-normal hd-title-underline section-title-no-underline hd-no-divider section-title-no-divider body-bold"/,
   );
   assert.match(html, /--survey-title-font-size:12pt/);
   assert.match(html, /--section-title-font-size:11pt/);
+  assert.match(html, /--survey-title-font-weight:400/);
+  assert.match(html, /--survey-title-text-align:right/);
 });
 
 test("CSS divider switches target the title elements that draw the borders", async () => {
@@ -57,4 +62,33 @@ test("each question and its options are generated in one article", async () => {
   const html = await buildDocument(survey);
   assert.match(html, /<article class="q" data-id="age"[^>]*>[\s\S]*?<div class="opts">[\s\S]*?<\/article>/);
   assert.equal((html.match(/data-omr-option="true"/g) || []).length, 1);
+});
+
+
+test("survey title can be removed completely without leaving an empty header", async () => {
+  const hiddenSurvey = {
+    ...survey,
+    layout_settings: { ...survey.layout_settings, showSurveyTitle: false },
+  };
+  const html = await buildDocument(hiddenSurvey);
+  assert.doesNotMatch(html, /<header class="hd/);
+  assert.match(html, /class="survey-document[^"]*"/);
+});
+
+test("a single-language title expands across the full title width", async () => {
+  const englishOnly = {
+    ...survey,
+    title_ar: "",
+    layout_settings: { ...survey.layout_settings, showSurveyTitle: true },
+  };
+  const html = await buildDocument(englishOnly);
+  assert.match(html, /<header class="hd hd-single-title">/);
+  assert.match(html, /<div class="hd-en en" dir="ltr">Survey &lt;One&gt;<\/div>/);
+  assert.doesNotMatch(html, /class="hd-ar/);
+});
+
+test("title remains visible by default for existing survey JSON files", async () => {
+  const legacySurvey = { ...survey, layout_settings: {} };
+  const html = await buildDocument(legacySurvey);
+  assert.match(html, /<header class="hd">/);
 });
