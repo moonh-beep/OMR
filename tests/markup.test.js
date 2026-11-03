@@ -44,7 +44,7 @@ test("buildDocument sets independent typography and divider switches", async () 
   const html = await buildDocument(survey);
   assert.match(
     html,
-    /class="survey-document hd-title-normal hd-title-underline section-title-no-underline hd-no-divider section-title-no-divider body-bold"/,
+    /class="survey-document hd-title-underline section-title-no-underline hd-no-divider section-title-no-divider body-bold"/,
   );
   assert.match(html, /--survey-title-font-size:12pt/);
   assert.match(html, /--section-title-font-size:11pt/);
