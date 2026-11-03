@@ -209,7 +209,6 @@ export async function buildDocument(survey) {
 
   const documentClasses = [
     "survey-document",
-    !surveyTitleBold ? "hd-title-normal" : "",
     settings.surveyTitleUnderline === true ? "hd-title-underline" : "",
     settings.sectionTitleUnderline === false ? "section-title-no-underline" : "",
     settings.surveyTitleDivider === false ? "hd-no-divider" : "",
