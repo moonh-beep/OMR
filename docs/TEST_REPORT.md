@@ -13,7 +13,7 @@
 
 ## نتيجة GitHub Actions
 
-<badge>لا</badge>
+**حالة الاختبارات:** نجحت جميع الاختبارات الآلية على commit المذكور أدناه.
 
 تم تشغيل workflow باسم **Project checks** في 3 نوفمبر 2026 على commit `bb867eb7550218e0d6228f46365e1245a2ed6a8d`.
 
