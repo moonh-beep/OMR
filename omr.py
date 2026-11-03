@@ -94,11 +94,7 @@ def new_empty_sheet(sid, L):
     q_init = {}
     for q in L["questions"]:
         if q["type"] == "choice":
-            q_init[q["id"]] = {
-                "sel": None,
-                "status": "ok",
-                "scores": [0] * len(q.get("options", [])),
-            }
+            q_init[q["id"]] = {"sel": None, "status": "ok", "scores": []}
     return {
         "id": sid,
         "pages": [f"blank_p{i+1}.jpg" for i in range(npp)],
@@ -172,29 +168,12 @@ def process(src, fresh, forced_page=None):
 
         ink = (cv2.GaussianBlur(warped.min(axis=2), (3, 3), 0) < INK_THRESHOLD) & (tdark[pi] == 0)
         for q in L["questions"]:
-            if q["type"] != "choice":
+            if q["page"] != pi or q["type"] != "choice":
                 continue
-
-            # Ordinary questions have all options on q["page"]. For a continued
-            # question, each option carries its own page and scores accumulate
-            # until every page containing that question has been scanned.
-            page_options = [
-                (option_index, option)
-                for option_index, option in enumerate(q.get("options", []))
-                if option.get("page", q["page"]) == pi
-            ]
-            if not page_options:
-                continue
-
-            scores = list(cur_sheet["q"].get(q["id"], {}).get("scores", []))
-            if len(scores) != len(q.get("options", [])):
-                scores = [0] * len(q.get("options", []))
-
-            for option_index, option in page_options:
-                x, y, w, h = option["rect"]
-                score = int(ink[max(0, y - PAD):y + h + PAD, max(0, x - PAD):x + w + PAD].sum())
-                scores[option_index] = score
-
+            scores = []
+            for o in q["options"]:
+                x, y, w, h = o["rect"]
+                scores.append(int(ink[max(0, y - PAD):y + h + PAD, max(0, x - PAD):x + w + PAD].sum()))
             cur_sheet["q"][q["id"]] = {**decide(scores), "scores": scores}
 
     json.dump(sheets, open(sf, "w", encoding="utf-8"), ensure_ascii=False)
