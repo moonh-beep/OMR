@@ -8,7 +8,11 @@ export function paginateInBrowser() {
   if (!measure || !root) throw new Error("مناطق القياس أو الصفحات غير موجودة.");
 
   const mmToCssPx = 96 / 25.4;
-  const availableHeight = (297 - 24 - 23) * mmToCssPx;
+  const bodyStyle = getComputedStyle(document.body);
+  const pageMarginMm = Number.parseFloat(bodyStyle.getPropertyValue("--page-margin")) || 20;
+  const bodyTopMm = pageMarginMm + 4;
+  const bodyBottomMm = pageMarginMm + 3;
+  const availableHeight = (297 - bodyTopMm - bodyBottomMm) * mmToCssPx;
   const elements = [...measure.children];
   const pages = [];
   let current = [];
