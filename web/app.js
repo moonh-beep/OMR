@@ -111,12 +111,12 @@ function resolveSurveyTitleFields(survey = {}) {
     ar ||= String(legacy.ar || legacy.text_ar || legacy.label_ar || "");
     if (!en && !ar) {
       const fallback = String(legacy.text || legacy.label || legacy.value || "");
-      if (/[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]/.test(fallback)) ar = fallback;
+      if (/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(fallback)) ar = fallback;
       else en = fallback;
     }
   } else if (legacy != null && !en && !ar) {
     const fallback = String(legacy);
-    if (/[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]/.test(fallback)) ar = fallback;
+    if (/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(fallback)) ar = fallback;
     else en = fallback;
   }
 
