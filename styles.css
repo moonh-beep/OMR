@@ -127,7 +127,7 @@ body.survey-document {
 .hd-en,
 .hd-ar {
   min-width: 0;
-  font-size: 15pt;
+  font-size: var(--survey-title-font-size, 12pt);
   font-weight: 700;
   line-height: 1.2;
   text-align: center;
@@ -159,9 +159,9 @@ body.survey-document {
 .section-title-en,
 .section-title-ar {
   min-width: 0;
-  font-size: 15pt;
+  font-size: var(--section-title-font-size, 12pt);
   font-weight: 700;
-  line-height: 1.45;
+  line-height: 1.35;
   text-decoration: underline;
   text-underline-offset: 1.2mm;
 }
@@ -206,7 +206,7 @@ body.survey-document {
   direction: ltr;
   align-items: start;
   font-size: var(--question-font-size, 13pt);
-  font-weight: 400;
+  font-weight: var(--body-font-weight, 400);
   line-height: 1.42;
   margin-bottom: 1.5mm;
 }
@@ -256,6 +256,7 @@ body.survey-document {
   background: transparent;
   color: #111;
   font-size: var(--option-font-size, 12pt);
+  font-weight: var(--body-font-weight, 400);
   line-height: 1.5;
   white-space: normal;
 }
@@ -399,4 +400,24 @@ body.survey-document {
     box-shadow: none;
     margin: 0;
   }
+}
+
+
+/* Optional title formatting controlled from the template settings panel. */
+.hd-title-underline .hd-en,
+.hd-title-underline .hd-ar {
+  text-decoration: underline;
+  text-underline-offset: 1mm;
+}
+.section-title-no-underline .section-title-en,
+.section-title-no-underline .section-title-ar {
+  text-decoration: none;
+}
+.hd-no-divider {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.section-title-no-divider {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
