@@ -15,6 +15,11 @@ const surveyTitleFontRange = document.getElementById("survey-title-font-range");
 const surveyTitleFontNumber = document.getElementById("survey-title-font-value");
 const sectionTitleFontRange = document.getElementById("section-title-font-range");
 const sectionTitleFontNumber = document.getElementById("section-title-font-value");
+const surveyTitleEnInput = document.getElementById("survey-title-en");
+const surveyTitleArInput = document.getElementById("survey-title-ar");
+const surveyTitleVisibleToggle = document.getElementById("survey-title-visible-toggle");
+const surveyTitleBoldToggle = document.getElementById("survey-title-bold-toggle");
+const surveyTitleAlignmentSelect = document.getElementById("survey-title-alignment");
 
 const bodyBoldToggle = document.getElementById("body-bold-toggle");
 const surveyTitleUnderlineToggle = document.getElementById("survey-title-underline-toggle");
@@ -27,6 +32,9 @@ const DEFAULT_LAYOUT = Object.freeze({
   pageMarginMm: 20,
   surveyTitleFontPt: 12,
   sectionTitleFontPt: 12,
+  showSurveyTitle: true,
+  surveyTitleBold: true,
+  surveyTitleAlignment: "center",
   bodyBold: false,
   surveyTitleUnderline: false,
   sectionTitleUnderline: true,
@@ -54,6 +62,12 @@ function setLayoutControls(settings = {}) {
   surveyTitleFontNumber.value = String(surveyTitleFont);
   sectionTitleFontRange.value = String(sectionTitleFont);
   sectionTitleFontNumber.value = String(sectionTitleFont);
+
+  surveyTitleVisibleToggle.checked = settings.showSurveyTitle !== false;
+  surveyTitleBoldToggle.checked = settings.surveyTitleBold !== false;
+  surveyTitleAlignmentSelect.value = ["left", "center", "right"].includes(settings.surveyTitleAlignment)
+    ? settings.surveyTitleAlignment
+    : DEFAULT_LAYOUT.surveyTitleAlignment;
 
   bodyBoldToggle.checked = settings.bodyBold === true;
   surveyTitleUnderlineToggle.checked = settings.surveyTitleUnderline === true;
@@ -87,6 +101,44 @@ bindSettingPair(marginRange, marginNumber, 18, 30, DEFAULT_LAYOUT.pageMarginMm);
 bindSettingPair(surveyTitleFontRange, surveyTitleFontNumber, 9, 22, DEFAULT_LAYOUT.surveyTitleFontPt);
 bindSettingPair(sectionTitleFontRange, sectionTitleFontNumber, 9, 22, DEFAULT_LAYOUT.sectionTitleFontPt);
 
+function resolveSurveyTitleFields(survey = {}) {
+  let en = String(survey.title_en ?? "");
+  let ar = String(survey.title_ar ?? "");
+  const legacy = survey.title;
+
+  if (legacy && typeof legacy === "object" && !Array.isArray(legacy)) {
+    en ||= String(legacy.en || legacy.text_en || legacy.label_en || "");
+    ar ||= String(legacy.ar || legacy.text_ar || legacy.label_ar || "");
+    if (!en && !ar) {
+      const fallback = String(legacy.text || legacy.label || legacy.value || "");
+      if (/[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]/.test(fallback)) ar = fallback;
+      else en = fallback;
+    }
+  } else if (legacy != null && !en && !ar) {
+    const fallback = String(legacy);
+    if (/[\\u0600-\\u06FF\\u0750-\\u077F\\u08A0-\\u08FF]/.test(fallback)) ar = fallback;
+    else en = fallback;
+  }
+
+  return { en, ar };
+}
+
+function setSurveyTitleFields(survey) {
+  const title = resolveSurveyTitleFields(survey);
+  surveyTitleEnInput.value = title.en;
+  surveyTitleArInput.value = title.ar;
+}
+
+editor.addEventListener("input", () => {
+  try {
+    const survey = JSON.parse(editor.value);
+    setSurveyTitleFields(survey);
+    setLayoutControls(survey.layout_settings || DEFAULT_LAYOUT);
+  } catch {
+    // Keep the last valid controls while the user is editing incomplete JSON.
+  }
+});
+
 async function loadSample() {
   const response = await fetch("/api/survey", {
     cache: "no-store",
@@ -98,6 +150,7 @@ async function loadSample() {
 
   const survey = await response.json();
   editor.value = JSON.stringify(survey, null, 2);
+  setSurveyTitleFields(survey);
   setLayoutControls(survey.layout_settings || DEFAULT_LAYOUT);
 }
 
@@ -113,6 +166,9 @@ function readSurvey() {
     pageMarginMm: clamp(marginNumber.value, 18, 30, DEFAULT_LAYOUT.pageMarginMm),
     surveyTitleFontPt: clamp(surveyTitleFontNumber.value, 9, 22, DEFAULT_LAYOUT.surveyTitleFontPt),
     sectionTitleFontPt: clamp(sectionTitleFontNumber.value, 9, 22, DEFAULT_LAYOUT.sectionTitleFontPt),
+    showSurveyTitle: surveyTitleVisibleToggle.checked,
+    surveyTitleBold: surveyTitleBoldToggle.checked,
+    surveyTitleAlignment: surveyTitleAlignmentSelect.value,
     bodyBold: bodyBoldToggle.checked,
     surveyTitleUnderline: surveyTitleUnderlineToggle.checked,
     sectionTitleUnderline: sectionTitleUnderlineToggle.checked,
@@ -120,6 +176,9 @@ function readSurvey() {
     sectionTitleDivider: sectionTitleDividerToggle.checked,
   };
   setLayoutControls(layoutSettings);
+  survey.title_en = surveyTitleEnInput.value.trim();
+  survey.title_ar = surveyTitleArInput.value.trim();
+  delete survey.title;
   survey.layout_settings = layoutSettings;
   return survey;
 }
@@ -246,6 +305,7 @@ fileInput.addEventListener("change", async () => {
     const text = await file.text();
     const survey = JSON.parse(text);
     editor.value = JSON.stringify(survey, null, 2);
+    setSurveyTitleFields(survey);
     setLayoutControls(survey.layout_settings || DEFAULT_LAYOUT);
     setStatus(`تم تحميل الملف ${file.name}.`, "success");
   } catch (error) {
