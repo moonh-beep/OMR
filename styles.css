@@ -10,9 +10,12 @@
   --soft-rule: #777;
   --page-width: 210mm;
   --page-height: 297mm;
-  --body-top: 24mm;
-  --body-bottom: 23mm;
-  --body-side: 20mm;
+  --page-margin: 20mm;
+  --question-font-size: 13pt;
+  --option-font-size: 12pt;
+  --body-top: calc(var(--page-margin) + 4mm);
+  --body-bottom: calc(var(--page-margin) + 3mm);
+  --body-side: var(--page-margin);
   --column-gap: 8mm;
 }
 
@@ -105,7 +108,7 @@ body.survey-document {
 #measure {
   position: absolute;
   visibility: hidden;
-  width: 170mm;
+  width: calc(210mm - var(--page-margin) - var(--page-margin));
   top: 0;
   left: 0;
   display: flex;
@@ -120,16 +123,16 @@ body.survey-document {
   column-gap: var(--column-gap);
   direction: ltr;
   align-items: center;
-  margin: 0 0 8mm;
-  padding: 0 0 3mm;
+  margin: 0 0 5mm;
+  padding: 0 0 2mm;
   border-bottom: 0.45mm solid #222;
 }
 .hd-en,
 .hd-ar {
   min-width: 0;
-  font-size: 21pt;
+  font-size: 15pt;
   font-weight: 700;
-  line-height: 1.28;
+  line-height: 1.2;
   text-align: center;
 }
 .hd-en {
@@ -205,7 +208,7 @@ body.survey-document {
   column-gap: var(--column-gap);
   direction: ltr;
   align-items: start;
-  font-size: 13pt;
+  font-size: var(--question-font-size, 13pt);
   font-weight: 400;
   line-height: 1.42;
   margin-bottom: 1.5mm;
@@ -255,7 +258,7 @@ body.survey-document {
   outline: 0;
   background: transparent;
   color: #111;
-  font-size: 12pt;
+  font-size: var(--option-font-size, 12pt);
   line-height: 1.5;
   white-space: normal;
 }
