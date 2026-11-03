@@ -33,7 +33,8 @@
 │   ├── normalize.test.js  # اختبارات توحيد البيانات
 │   ├── markup.test.js     # اختبارات HTML وتنسيق العناوين
 │   ├── pagination.test.js # اختبارات منع تقسيم السؤال
-│   └── test_omr_unit.py   # اختبارات وحدات OMR
+│   ├── test_omr_unit.py   # اختبارات وحدات OMR
+│   └── test_generated_template.py # اختبار PDF/PNG وتوافق OMR
 └── docs/
     └── TEST_REPORT.md     # نطاق الاختبارات وحدودها
 ```
@@ -74,6 +75,8 @@ npm start
 npm test
 npm run test:python
 python -m py_compile app.py omr.py
+npm run generate
+python -m unittest discover -s tests -p "test_generated_template.py" -v
 ```
 
 لتوليد القالب من ملف المثال عبر Chromium:
@@ -82,7 +85,7 @@ python -m py_compile app.py omr.py
 npm run generate
 ```
 
-يتطلب التوليد وجود Chrome أو Edge أو Chromium. ينشئ الملفات في `template/`.
+يتطلب التوليد وجود Chrome أو Edge أو Chromium. ينشئ الملفات في `template/`. بعد التوليد يمكن تشغيل اختبار PDF/PNG والتوافق مع OMR بالأمر الأخير أعلاه.
 
 ## تبويبات النظام الموحد
 
