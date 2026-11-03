@@ -48,7 +48,7 @@ test("visual settings appear before the optional raw JSON editor", () => {
   assert.notEqual(controlsIndex, -1);
   assert.notEqual(rawEditorIndex, -1);
   assert.ok(controlsIndex < rawEditorIndex);
-  assert.match(html, /<details class="json-editor">[\\s\\S]*?<textarea id="survey-json"/);
+  assert.match(html, /<details class="json-editor">[\s\S]*?<textarea id="survey-json"/);
 });
 
 test("preview remains available and the page is declared right-to-left", () => {
@@ -59,7 +59,7 @@ test("preview remains available and the page is declared right-to-left", () => {
 });
 
 test("responsive layouts cover tablet and mobile widths", () => {
-  assert.match(css, /@media\\s*\\(max-width:\\s*940px\\)/);
-  assert.match(css, /@media\\s*\\(max-width:\\s*620px\\)/);
-  assert.match(css, /grid-template-columns:\\s*1fr/);
+  assert.match(css, /@media\s*\(max-width:\s*940px\)/);
+  assert.match(css, /@media\s*\(max-width:\s*620px\)/);
+  assert.match(css, /grid-template-columns:\s*1fr/);
 });
