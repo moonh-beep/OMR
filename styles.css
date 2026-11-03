@@ -400,3 +400,43 @@ body.survey-document {
     margin: 0;
   }
 }
+
+
+/* Adaptive density: used only when the next complete block would leave a large gap. */
+.section-title-compact {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 5mm;
+  row-gap: 0;
+  margin-bottom: 3mm;
+  padding-bottom: 0.8mm;
+}
+.section-title-compact .section-title-en,
+.section-title-compact .section-title-ar {
+  grid-row: auto;
+  font-size: 11.5pt;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.q-compact {
+  margin-bottom: 2.5mm;
+}
+.q-compact .qt {
+  font-size: 11pt;
+  line-height: 1.28;
+  margin-bottom: 1mm;
+}
+.q-compact .opts {
+  gap: 0.35mm;
+  margin-top: 0.8mm;
+}
+.q-compact .opt {
+  font-size: 10.5pt;
+  line-height: 1.3;
+  padding: 0.35mm 1mm;
+}
+.q-compact .opt-check {
+  width: 4.6mm;
+  height: 4.6mm;
+  min-width: 4.6mm;
+}
