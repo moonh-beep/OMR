@@ -198,7 +198,7 @@ export async function buildDocument(survey) {
     : {};
   const questionFontPt = Math.min(18, Math.max(9, Number(settings.questionFontPt) || 13));
   const optionFontPt = Math.max(8, questionFontPt - 1);
-  const pageMarginMm = Math.min(30, Math.max(12, Number(settings.pageMarginMm) || 20));
+  const pageMarginMm = Math.min(30, Math.max(18, Number(settings.pageMarginMm) || 20));
 
   const title =
     `<header class="hd">` +
