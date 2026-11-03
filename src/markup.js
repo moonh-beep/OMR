@@ -201,9 +201,15 @@ export async function buildDocument(survey) {
   const pageMarginMm = Math.min(30, Math.max(18, Number(settings.pageMarginMm) || 20));
   const surveyTitleFontPt = Math.min(22, Math.max(9, Number(settings.surveyTitleFontPt) || 12));
   const sectionTitleFontPt = Math.min(22, Math.max(9, Number(settings.sectionTitleFontPt) || 12));
+  const showSurveyTitle = settings.showSurveyTitle !== false && Boolean(titleEn.trim() || titleAr.trim());
+  const surveyTitleBold = settings.surveyTitleBold !== false;
+  const surveyTitleAlignment = ["left", "center", "right"].includes(settings.surveyTitleAlignment)
+    ? settings.surveyTitleAlignment
+    : "center";
 
   const documentClasses = [
     "survey-document",
+    !surveyTitleBold ? "hd-title-normal" : "",
     settings.surveyTitleUnderline === true ? "hd-title-underline" : "",
     settings.sectionTitleUnderline === false ? "section-title-no-underline" : "",
     settings.surveyTitleDivider === false ? "hd-no-divider" : "",
@@ -211,15 +217,16 @@ export async function buildDocument(survey) {
     settings.bodyBold === true ? "body-bold" : "",
   ].filter(Boolean).join(" ");
 
-  const title =
-    `<header class="hd">` +
-    `<div class="hd-en en" dir="ltr">${escapeHtml(titleEn)}</div>` +
-    `<div class="hd-ar ar" dir="rtl">${escapeHtml(titleAr)}</div>` +
-    `</header>`;
+  const title = showSurveyTitle
+    ? `<header class="hd${!titleEn.trim() || !titleAr.trim() ? " hd-single-title" : ""}">` +
+      (titleEn.trim() ? `<div class="hd-en en" dir="ltr">${escapeHtml(titleEn)}</div>` : "") +
+      (titleAr.trim() ? `<div class="hd-ar ar" dir="rtl">${escapeHtml(titleAr)}</div>` : "") +
+      `</header>`
+    : "";
 
   const entries = normalizeQuestions(survey);
 
-  const blocks = [title];
+  const blocks = title ? [title] : [];
 
   let previousSectionKey = Symbol("first");
 
@@ -257,7 +264,7 @@ ${css}
   </style>
 </head>
 
-<body class="${documentClasses}" style="--question-font-size:${questionFontPt}pt; --option-font-size:${optionFontPt}pt; --page-margin:${pageMarginMm}mm; --survey-title-font-size:${surveyTitleFontPt}pt; --section-title-font-size:${sectionTitleFontPt}pt; --body-font-weight:${settings.bodyBold === true ? 700 : 400};">
+<body class="${documentClasses}" style="--question-font-size:${questionFontPt}pt; --option-font-size:${optionFontPt}pt; --page-margin:${pageMarginMm}mm; --survey-title-font-size:${surveyTitleFontPt}pt; --survey-title-font-weight:${surveyTitleBold ? 700 : 400}; --survey-title-text-align:${surveyTitleAlignment}; --section-title-font-size:${sectionTitleFontPt}pt; --body-font-weight:${settings.bodyBold === true ? 700 : 400};">
 
   <main id="measure" aria-label="Questionnaire measurement area">
     ${blocks.join("\n")}
