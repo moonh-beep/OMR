@@ -60,6 +60,55 @@
             <input id="page-margin-value" class="setting-number" type="number" min="18" max="30" step="1" value="20" inputmode="numeric" aria-label="الهامش بالملليمتر">
           </div>
         </div>
+
+        <div class="setting-separator"></div>
+        <h4 class="setting-group-title">أحجام العناوين</h4>
+
+        <div class="setting-control">
+          <div class="setting-label-row">
+            <label for="survey-title-font-value">عنوان الاستبيان (title_en / title_ar)</label>
+            <span class="setting-unit">pt</span>
+          </div>
+          <div class="setting-input-row">
+            <input id="survey-title-font-range" type="range" min="9" max="22" step="0.5" value="12" aria-label="شريط حجم عنوان الاستبيان">
+            <input id="survey-title-font-value" class="setting-number" type="number" min="9" max="22" step="0.5" value="12" inputmode="decimal" aria-label="حجم عنوان الاستبيان بالنقاط">
+          </div>
+        </div>
+
+        <div class="setting-control">
+          <div class="setting-label-row">
+            <label for="section-title-font-value">عناوين الأقسام</label>
+            <span class="setting-unit">pt</span>
+          </div>
+          <div class="setting-input-row">
+            <input id="section-title-font-range" type="range" min="9" max="22" step="0.5" value="12" aria-label="شريط حجم عناوين الأقسام">
+            <input id="section-title-font-value" class="setting-number" type="number" min="9" max="22" step="0.5" value="12" inputmode="decimal" aria-label="حجم عناوين الأقسام بالنقاط">
+          </div>
+        </div>
+
+        <div class="setting-separator"></div>
+        <h4 class="setting-group-title">تنسيق النصوص والعناوين</h4>
+
+        <label class="setting-toggle">
+          <input id="body-bold-toggle" type="checkbox">
+          <span>جعل نصوص الأسئلة والخيارات عريضة (Bold)</span>
+        </label>
+        <label class="setting-toggle">
+          <input id="survey-title-underline-toggle" type="checkbox">
+          <span>تسطير نص عنوان الاستبيان</span>
+        </label>
+        <label class="setting-toggle">
+          <input id="section-title-underline-toggle" type="checkbox" checked>
+          <span>تسطير نص عناوين الأقسام</span>
+        </label>
+        <label class="setting-toggle">
+          <input id="survey-title-divider-toggle" type="checkbox" checked>
+          <span>إظهار الخط الفاصل أسفل عنوان الاستبيان</span>
+        </label>
+        <label class="setting-toggle">
+          <input id="section-title-divider-toggle" type="checkbox" checked>
+          <span>إظهار الخط الفاصل أسفل عناوين الأقسام</span>
+        </label>
         <p class="setting-hint">تُطبَّق الإعدادات نفسها على المعاينة وملفات PDF وPNG. ارفع الهوامش لتوسيع المسافة عن حواف الورقة، أو قلّلها لاستغلال مساحة أكبر.</p>
       </section>
 
