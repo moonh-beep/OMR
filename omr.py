@@ -192,7 +192,7 @@ def process(src, fresh, forced_page=None):
 
             for option_index, option in page_options:
                 x, y, w, h = option["rect"]
-                score = int(ink[max(0, y - PAD):y + h + PAD, max(0, x):x + w + PAD].sum())
+                score = int(ink[max(0, y - PAD):y + h + PAD, max(0, x - PAD):x + w + PAD].sum())
                 scores[option_index] = score
 
             cur_sheet["q"][q["id"]] = {**decide(scores), "scores": scores}
