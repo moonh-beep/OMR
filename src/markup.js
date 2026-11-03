@@ -199,6 +199,17 @@ export async function buildDocument(survey) {
   const questionFontPt = Math.min(18, Math.max(9, Number(settings.questionFontPt) || 13));
   const optionFontPt = Math.max(8, questionFontPt - 1);
   const pageMarginMm = Math.min(30, Math.max(18, Number(settings.pageMarginMm) || 20));
+  const surveyTitleFontPt = Math.min(22, Math.max(9, Number(settings.surveyTitleFontPt) || 12));
+  const sectionTitleFontPt = Math.min(22, Math.max(9, Number(settings.sectionTitleFontPt) || 12));
+
+  const documentClasses = [
+    "survey-document",
+    settings.surveyTitleUnderline === true ? "hd-title-underline" : "",
+    settings.sectionTitleUnderline === false ? "section-title-no-underline" : "",
+    settings.surveyTitleDivider === false ? "hd-no-divider" : "",
+    settings.sectionTitleDivider === false ? "section-title-no-divider" : "",
+    settings.bodyBold === true ? "body-bold" : "",
+  ].filter(Boolean).join(" ");
 
   const title =
     `<header class="hd">` +
@@ -246,7 +257,7 @@ ${css}
   </style>
 </head>
 
-<body class="survey-document" style="--question-font-size:${questionFontPt}pt; --option-font-size:${optionFontPt}pt; --page-margin:${pageMarginMm}mm;">
+<body class="${documentClasses}" style="--question-font-size:${questionFontPt}pt; --option-font-size:${optionFontPt}pt; --page-margin:${pageMarginMm}mm; --survey-title-font-size:${surveyTitleFontPt}pt; --section-title-font-size:${sectionTitleFontPt}pt; --body-font-weight:${settings.bodyBold === true ? 700 : 400};">
 
   <main id="measure" aria-label="Questionnaire measurement area">
     ${blocks.join("\n")}
