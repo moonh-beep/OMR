@@ -56,7 +56,11 @@ def prepare_template(root: Path, layout: dict, page_indices: list[int]):
 def test_single_page_detection():
     with tempfile.TemporaryDirectory(prefix="questionnaire-omr-single-") as temp:
         root = Path(temp)
-        layout = SOURCE_LAYOUT
+        first_question = next(
+            q for q in SOURCE_LAYOUT["questions"]
+            if q["type"] == "choice" and q["page"] == 0
+        )
+        layout = {"pages": [SOURCE_LAYOUT["pages"][0]], "questions": [first_question]}
         prepare_template(root, layout, [0])
 
         image = cv2.imread(str(root / "template" / "p1.png"), cv2.IMREAD_COLOR)
@@ -68,7 +72,7 @@ def test_single_page_detection():
                 f"مركز علامة الزاوية لا يطابق layout.json: {point} مقابل {expected}"
             )
 
-        first_question = next(q for q in layout["questions"] if q["type"] == "choice" and q["page"] == 0)
+        first_question = layout["questions"][0]
         first_option = first_question["options"][0]["rect"]
         x, y, width, height = first_option
         center = (x + width // 2, y + height // 2)
