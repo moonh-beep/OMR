@@ -10,8 +10,6 @@ export function collectLayoutInBrowser() {
     ];
   };
   const layout = { pages: [], questions: [] };
-  const questionMap = new Map();
-
   document.querySelectorAll(".page").forEach((page, pageIndex) => {
     const pageRect = page.getBoundingClientRect();
     layout.pages.push({
@@ -24,34 +22,17 @@ export function collectLayoutInBrowser() {
     });
 
     page.querySelectorAll(".q").forEach((element) => {
-      const id = element.dataset.id;
-      let entry = questionMap.get(id);
-      if (!entry) {
-        entry = {
-          question: {
-            id,
-            type: element.dataset.type,
-            page: pageIndex,
-            rect: rect(element, pageRect),
-            text: [
-              element.querySelector(".qt-en")?.textContent.trim(),
-              element.querySelector(".qt-ar")?.textContent.trim(),
-            ].filter(Boolean).join(" / "),
-          },
-          fragments: [],
-        };
-        questionMap.set(id, entry);
-        layout.questions.push(entry.question);
-      }
-      entry.fragments.push({ element, pageIndex, pageRect });
-    });
-  });
-
-  for (const { question, fragments } of questionMap.values()) {
-    if (question.type === "choice") {
-      if (fragments.length === 1) {
-        // Keep the historical layout shape for ordinary, unsplit questions.
-        const { element, pageRect } = fragments[0];
+      const question = {
+        id: element.dataset.id,
+        type: element.dataset.type,
+        page: pageIndex,
+        rect: rect(element, pageRect),
+        text: [
+          element.querySelector(".qt-en")?.textContent.trim(),
+          element.querySelector(".qt-ar")?.textContent.trim(),
+        ].filter(Boolean).join(" / "),
+      };
+      if (element.dataset.type === "choice") {
         question.options = [...element.querySelectorAll(".opt")].map((option) => ({
           label: [
             option.querySelector(".opt-en")?.textContent.trim(),
@@ -60,66 +41,41 @@ export function collectLayoutInBrowser() {
           rect: rect(option, pageRect),
         }));
       } else {
-        // A split question stores each answer row's page as part of its OMR map.
-        question.options = fragments.flatMap(({ element, pageIndex, pageRect }) =>
-          [...element.querySelectorAll(".opt")].map((option) => ({
-            index: Number(option.dataset.optionIndex),
-            page: pageIndex,
-            label: [
-              option.querySelector(".opt-en")?.textContent.trim(),
-              option.querySelector(".opt-ar")?.textContent.trim(),
-            ].filter(Boolean).join(" / "),
-            rect: rect(option, pageRect),
-          }))
-        ).sort((a, b) => a.index - b.index);
-        question.options.forEach((option) => { delete option.index; });
+        const field = element.querySelector(".tb");
+        if (!field) throw new Error(`حقل الإجابة غير موجود للسؤال ${question.id}.`);
+        question.field = rect(field, pageRect);
       }
-    } else {
-      const { element, pageRect } = fragments[0];
-      const field = element.querySelector(".tb");
-      if (!field) throw new Error(`حقل الإجابة غير موجود للسؤال ${question.id}.`);
-      question.field = rect(field, pageRect);
-    }
-  }
+      layout.questions.push(question);
+    });
+  });
   return layout;
 }
 
 /**
  * Convert measured CSS-pixel geometry to the exact pixel dimensions of the
- * PNG screenshots. An option is scaled against the page it belongs to; this
- * matters when a single question continues onto more than one A4 page.
+ * PNG screenshots. This mirrors the old generator's x/y/w/h and center-point
+ * representation while using the actual PNG dimensions rather than a DPI guess.
  */
 export function scaleLayoutToPng(layout, dimensionsByPage) {
-  const scaleRect = (rect, scaleX, scaleY) => [
-    Math.round(rect[0] * scaleX),
-    Math.round(rect[1] * scaleY),
-    Math.round(rect[2] * scaleX),
-    Math.round(rect[3] * scaleY),
-  ];
-
-  const scales = layout.pages.map((page, pageIndex) => {
+  layout.pages.forEach((page, pageIndex) => {
     const { width, height } = dimensionsByPage[pageIndex];
     const scaleX = width / page.w;
     const scaleY = height / page.h;
-    page.markers = page.markers.map(([x, y]) => [
-      Math.round(x * scaleX),
-      Math.round(y * scaleY),
-    ]);
+    const scaleRect = (rect) => [
+      Math.round(rect[0] * scaleX),
+      Math.round(rect[1] * scaleY),
+      Math.round(rect[2] * scaleX),
+      Math.round(rect[3] * scaleY),
+    ];
+    page.markers = page.markers.map(([x, y]) => [Math.round(x * scaleX), Math.round(y * scaleY)]);
     page.w = width;
     page.h = height;
-    return { scaleX, scaleY };
+    for (const question of layout.questions) {
+      if (question.page !== pageIndex) continue;
+      question.rect = scaleRect(question.rect);
+      if (Object.hasOwn(question, "field")) question.field = scaleRect(question.field);
+      for (const option of question.options || []) option.rect = scaleRect(option.rect);
+    }
   });
-
-  for (const question of layout.questions) {
-    const questionScale = scales[question.page];
-    question.rect = scaleRect(question.rect, questionScale.scaleX, questionScale.scaleY);
-    if (Object.hasOwn(question, "field")) {
-      question.field = scaleRect(question.field, questionScale.scaleX, questionScale.scaleY);
-    }
-    for (const option of question.options || []) {
-      const optionScale = scales[option.page ?? question.page];
-      option.rect = scaleRect(option.rect, optionScale.scaleX, optionScale.scaleY);
-    }
-  }
   return layout;
 }
