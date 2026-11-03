@@ -413,11 +413,13 @@ body.survey-document {
 .section-title-no-underline .section-title-ar {
   text-decoration: none;
 }
-.hd-no-divider {
+
+/* Divider switches live on the document body, so target the actual title blocks. */
+.survey-document.hd-no-divider .hd {
   border-bottom: 0;
   padding-bottom: 0;
 }
-.section-title-no-divider {
+.survey-document.section-title-no-divider .section-title {
   border-bottom: 0;
   padding-bottom: 0;
 }
