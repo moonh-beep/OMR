@@ -125,3 +125,73 @@ h1 { margin: 0; font-size: clamp(22px, 2.2vw, 30px); line-height: 1.35; }
   .editor-panel { padding: 13px; }
   .editor-actions .button { flex: 1; }
 }
+
+
+.layout-controls {
+  margin: 16px 0 2px;
+  padding: 15px;
+  border: 1px solid #e1e6eb;
+  border-radius: 10px;
+  background: #fbfcfd;
+}
+.layout-controls-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+.layout-controls-heading h3 {
+  margin: 0;
+  font-size: 14px;
+}
+.layout-controls-heading p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.setting-control + .setting-control {
+  margin-top: 13px;
+}
+.setting-label-row,
+.setting-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.setting-label-row label {
+  color: #303a45;
+  font-size: 12px;
+  font-weight: 650;
+}
+.setting-unit {
+  color: #7a8591;
+  font: 11px Arial, sans-serif;
+}
+.setting-input-row {
+  margin-top: 7px;
+}
+.setting-input-row input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: #36485c;
+}
+.setting-number {
+  width: 76px;
+  min-height: 34px;
+  border: 1px solid #d7dee6;
+  border-radius: 7px;
+  padding: 4px 7px;
+  color: #25303b;
+  background: #fff;
+  direction: ltr;
+  text-align: center;
+  font: 12px Consolas, monospace;
+}
+.setting-hint {
+  margin: 12px 0 0;
+  color: #77818d;
+  font-size: 10.5px;
+  line-height: 1.7;
+}
