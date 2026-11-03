@@ -3,169 +3,221 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6f8">
   <title>منشئ قوالب الاستبيانات</title>
   <link rel="stylesheet" href="/app.css">
 </head>
 <body>
   <header class="topbar">
-    <div>
-      <p class="eyebrow">QUESTIONNAIRE WEB ENGINE</p>
-      <h1>منشئ قوالب الاستبيانات</h1>
-      <p class="subtitle">تصميم ثنائي اللغة وتصدير PDF وPNG مع إحداثيات متوافقة بنيوياً مع تنسيق OMR الحالي.</p>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">Q</span>
+      <div class="brand-copy">
+        <p class="eyebrow">QUESTIONNAIRE WEB ENGINE</p>
+        <h1>منشئ قوالب الاستبيانات</h1>
+        <p class="subtitle">صمّم استبيانك، راجع معاينته، ثم صدّره بصيغ PDF وPNG.</p>
+      </div>
     </div>
-    <div class="top-actions">
+    <div class="top-actions" aria-label="إجراءات الملفات">
       <button id="load-sample" class="button button-muted" type="button">تحميل آخر استبيان</button>
       <label class="button button-muted file-button">فتح ملف JSON<input id="file-input" type="file" accept="application/json,.json"></label>
     </div>
   </header>
 
   <main class="workspace">
-    <section class="editor-panel">
+    <section class="editor-panel" aria-labelledby="editor-title">
       <div class="panel-heading">
         <div>
-          <h2>بيانات الاستبيان</h2>
-          <p>عدّل JSON ثم حدّث المعاينة أو أنشئ الملفات.</p>
+          <span class="section-kicker">01 · الإعدادات</span>
+          <h2 id="editor-title">إعداد الاستبيان</h2>
+          <p>خصص مظهر الورقة ثم حدّث المعاينة قبل التصدير.</p>
         </div>
-        <span class="format-chip">survey.json</span>
+        <span class="format-chip">A4 · OMR</span>
       </div>
-      <textarea id="survey-json" spellcheck="false" aria-label="بيانات الاستبيان بصيغة JSON"></textarea>
 
       <section class="layout-controls" aria-labelledby="layout-controls-title">
         <div class="layout-controls-heading">
           <div>
-            <h3 id="layout-controls-title">إعدادات تنسيق الورقة</h3>
-            <p>تحكم بحجم النص والهوامش دون تقسيم السؤال بين الصفحات.</p>
+            <h3 id="layout-controls-title">تنسيق الورقة</h3>
+            <p>إعدادات مستقلة وواضحة لكل جزء من التصميم.</p>
           </div>
-          <span class="format-chip">A4</span>
+          <span class="format-chip">تصميم</span>
         </div>
 
-        <div class="setting-control">
-          <div class="setting-label-row">
-            <label for="question-font-value">حجم خط السؤال والخيارات</label>
-            <span class="setting-unit">pt</span>
-          </div>
-          <div class="setting-input-row">
-            <input id="question-font-range" type="range" min="9" max="18" step="0.5" value="13" aria-label="شريط حجم الخط">
-            <input id="question-font-value" class="setting-number" type="number" min="9" max="18" step="0.5" value="13" inputmode="decimal" aria-label="حجم الخط بالنقاط">
-          </div>
+        <div class="controls-grid">
+          <section class="setting-card" aria-labelledby="page-settings-title">
+            <div class="setting-card-heading">
+              <span class="setting-icon" aria-hidden="true">▤</span>
+              <div>
+                <h4 id="page-settings-title">مقاسات الصفحة</h4>
+                <p>حجم النص والمسافة عن الحواف</p>
+              </div>
+            </div>
+            <div class="setting-control">
+              <div class="setting-label-row">
+                <label for="question-font-value">حجم خط السؤال والخيارات</label>
+                <span class="setting-unit">pt</span>
+              </div>
+              <div class="setting-input-row">
+                <input id="question-font-range" type="range" min="9" max="18" step="0.5" value="13" aria-label="شريط حجم الخط">
+                <input id="question-font-value" class="setting-number" type="number" min="9" max="18" step="0.5" value="13" inputmode="decimal" aria-label="حجم الخط بالنقاط">
+              </div>
+            </div>
+            <div class="setting-control">
+              <div class="setting-label-row">
+                <label for="page-margin-value">هوامش الصفحة من الجهات الأربع</label>
+                <span class="setting-unit">mm</span>
+              </div>
+              <div class="setting-input-row">
+                <input id="page-margin-range" type="range" min="18" max="30" step="1" value="20" aria-label="شريط هوامش الصفحة">
+                <input id="page-margin-value" class="setting-number" type="number" min="18" max="30" step="1" value="20" inputmode="numeric" aria-label="الهامش بالملليمتر">
+              </div>
+            </div>
+          </section>
+
+          <section class="setting-card title-settings" aria-labelledby="title-settings-title">
+            <div class="setting-card-heading">
+              <span class="setting-icon" aria-hidden="true">T</span>
+              <div>
+                <h4 id="title-settings-title">عنوان الاستبيان</h4>
+                <p>النص والظهور والمحاذاة</p>
+              </div>
+            </div>
+            <div class="setting-control">
+              <label class="setting-field-label" for="survey-title-ar">العنوان باللغة العربية</label>
+              <input id="survey-title-ar" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="عنوان الاستبيان">
+            </div>
+            <div class="setting-control">
+              <label class="setting-field-label" for="survey-title-en">العنوان باللغة الإنجليزية</label>
+              <input id="survey-title-en" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="Questionnaire title">
+            </div>
+            <div class="setting-control">
+              <label class="setting-field-label" for="survey-title-alignment">محاذاة العنوان</label>
+              <select id="survey-title-alignment" class="setting-select">
+                <option value="center">توسيط</option>
+                <option value="right">محاذاة إلى اليمين</option>
+                <option value="left">محاذاة إلى اليسار</option>
+              </select>
+            </div>
+            <div class="setting-toggles">
+              <label class="setting-toggle">
+                <input id="survey-title-visible-toggle" type="checkbox" checked>
+                <span>إظهار عنوان الاستبيان</span>
+              </label>
+              <label class="setting-toggle">
+                <input id="survey-title-bold-toggle" type="checkbox" checked>
+                <span>عنوان عريض (Bold)</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="setting-card" aria-labelledby="heading-sizes-title">
+            <div class="setting-card-heading">
+              <span class="setting-icon" aria-hidden="true">Aa</span>
+              <div>
+                <h4 id="heading-sizes-title">أحجام العناوين</h4>
+                <p>تحكم بعنوان الاستبيان والأقسام</p>
+              </div>
+            </div>
+            <div class="setting-control">
+              <div class="setting-label-row">
+                <label for="survey-title-font-value">حجم عنوان الاستبيان</label>
+                <span class="setting-unit">pt</span>
+              </div>
+              <div class="setting-input-row">
+                <input id="survey-title-font-range" type="range" min="9" max="22" step="0.5" value="12" aria-label="شريط حجم عنوان الاستبيان">
+                <input id="survey-title-font-value" class="setting-number" type="number" min="9" max="22" step="0.5" value="12" inputmode="decimal" aria-label="حجم عنوان الاستبيان بالنقاط">
+              </div>
+            </div>
+            <div class="setting-control">
+              <div class="setting-label-row">
+                <label for="section-title-font-value">حجم عناوين الأقسام</label>
+                <span class="setting-unit">pt</span>
+              </div>
+              <div class="setting-input-row">
+                <input id="section-title-font-range" type="range" min="9" max="22" step="0.5" value="12" aria-label="شريط حجم عناوين الأقسام">
+                <input id="section-title-font-value" class="setting-number" type="number" min="9" max="22" step="0.5" value="12" inputmode="decimal" aria-label="حجم عناوين الأقسام بالنقاط">
+              </div>
+            </div>
+          </section>
+
+          <section class="setting-card" aria-labelledby="text-style-title">
+            <div class="setting-card-heading">
+              <span class="setting-icon" aria-hidden="true">✎</span>
+              <div>
+                <h4 id="text-style-title">تنسيق النصوص</h4>
+                <p>الخطوط والتسطير والفواصل</p>
+              </div>
+            </div>
+            <div class="setting-toggles">
+              <label class="setting-toggle">
+                <input id="body-bold-toggle" type="checkbox">
+                <span>نصوص الأسئلة والخيارات عريضة</span>
+              </label>
+              <label class="setting-toggle">
+                <input id="survey-title-underline-toggle" type="checkbox">
+                <span>تسطير عنوان الاستبيان</span>
+              </label>
+              <label class="setting-toggle">
+                <input id="section-title-underline-toggle" type="checkbox" checked>
+                <span>تسطير عناوين الأقسام</span>
+              </label>
+              <label class="setting-toggle">
+                <input id="survey-title-divider-toggle" type="checkbox" checked>
+                <span>خط فاصل أسفل عنوان الاستبيان</span>
+              </label>
+              <label class="setting-toggle">
+                <input id="section-title-divider-toggle" type="checkbox" checked>
+                <span>خط فاصل أسفل عناوين الأقسام</span>
+              </label>
+            </div>
+          </section>
         </div>
-
-        <div class="setting-control">
-          <div class="setting-label-row">
-            <label for="page-margin-value">هوامش الصفحة من الجهات الأربع</label>
-            <span class="setting-unit">mm</span>
-          </div>
-          <div class="setting-input-row">
-            <input id="page-margin-range" type="range" min="18" max="30" step="1" value="20" aria-label="شريط هوامش الصفحة">
-            <input id="page-margin-value" class="setting-number" type="number" min="18" max="30" step="1" value="20" inputmode="numeric" aria-label="الهامش بالملليمتر">
-          </div>
-        </div>
-
-        <div class="setting-separator"></div>
-        <h4 class="setting-group-title">محتوى عنوان الاستبيان</h4>
-
-        <div class="setting-control">
-          <label class="setting-field-label" for="survey-title-en">العنوان باللغة الإنجليزية</label>
-          <input id="survey-title-en" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="Questionnaire title">
-        </div>
-        <div class="setting-control">
-          <label class="setting-field-label" for="survey-title-ar">العنوان باللغة العربية</label>
-          <input id="survey-title-ar" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="عنوان الاستبيان">
-        </div>
-
-        <label class="setting-toggle">
-          <input id="survey-title-visible-toggle" type="checkbox" checked>
-          <span>إظهار عنوان الاستبيان في الورقة</span>
-        </label>
-        <label class="setting-toggle">
-          <input id="survey-title-bold-toggle" type="checkbox" checked>
-          <span>جعل عنوان الاستبيان عريضاً (Bold)</span>
-        </label>
-
-        <div class="setting-control">
-          <label class="setting-field-label" for="survey-title-alignment">محاذاة العنوان</label>
-          <select id="survey-title-alignment" class="setting-select">
-            <option value="center">توسيط</option>
-            <option value="right">محاذاة إلى اليمين</option>
-            <option value="left">محاذاة إلى اليسار</option>
-          </select>
-        </div>
-
-        <div class="setting-separator"></div>
-        <h4 class="setting-group-title">أحجام العناوين</h4>
-
-        <div class="setting-control">
-          <div class="setting-label-row">
-            <label for="survey-title-font-value">حجم عنوان الاستبيان</label>
-            <span class="setting-unit">pt</span>
-          </div>
-          <div class="setting-input-row">
-            <input id="survey-title-font-range" type="range" min="9" max="22" step="0.5" value="12" aria-label="شريط حجم عنوان الاستبيان">
-            <input id="survey-title-font-value" class="setting-number" type="number" min="9" max="22" step="0.5" value="12" inputmode="decimal" aria-label="حجم عنوان الاستبيان بالنقاط">
-          </div>
-        </div>
-
-        <div class="setting-control">
-          <div class="setting-label-row">
-            <label for="section-title-font-value">عناوين الأقسام</label>
-            <span class="setting-unit">pt</span>
-          </div>
-          <div class="setting-input-row">
-            <input id="section-title-font-range" type="range" min="9" max="22" step="0.5" value="12" aria-label="شريط حجم عناوين الأقسام">
-            <input id="section-title-font-value" class="setting-number" type="number" min="9" max="22" step="0.5" value="12" inputmode="decimal" aria-label="حجم عناوين الأقسام بالنقاط">
-          </div>
-        </div>
-
-        <div class="setting-separator"></div>
-        <h4 class="setting-group-title">تنسيق النصوص والعناوين</h4>
-
-        <label class="setting-toggle">
-          <input id="body-bold-toggle" type="checkbox">
-          <span>جعل نصوص الأسئلة والخيارات عريضة (Bold)</span>
-        </label>
-        <label class="setting-toggle">
-          <input id="survey-title-underline-toggle" type="checkbox">
-          <span>تسطير نص عنوان الاستبيان</span>
-        </label>
-        <label class="setting-toggle">
-          <input id="section-title-underline-toggle" type="checkbox" checked>
-          <span>تسطير نص عناوين الأقسام</span>
-        </label>
-        <label class="setting-toggle">
-          <input id="survey-title-divider-toggle" type="checkbox" checked>
-          <span>إظهار الخط الفاصل أسفل عنوان الاستبيان</span>
-        </label>
-        <label class="setting-toggle">
-          <input id="section-title-divider-toggle" type="checkbox" checked>
-          <span>إظهار الخط الفاصل أسفل عناوين الأقسام</span>
-        </label>
-        <p class="setting-hint">تُطبَّق الإعدادات نفسها على المعاينة وملفات PDF وPNG. ارفع الهوامش لتوسيع المسافة عن حواف الورقة، أو قلّلها لاستغلال مساحة أكبر.</p>
+        <p class="setting-hint">تنعكس الإعدادات على المعاينة وملفات PDF وPNG. تبقى خيارات كل سؤال معه كوحدة واحدة ولا تتوزع على صفحات مختلفة.</p>
       </section>
 
       <div class="editor-actions">
         <button id="preview-button" class="button button-secondary" type="button">تحديث المعاينة</button>
         <button id="generate-button" class="button button-primary" type="button">توليد PDF وPNG وJSON</button>
       </div>
-      <p id="status" class="status" role="status">جاهز. حمّل المثال أو الصق بيانات الاستبيان.</p>
+      <p id="status" class="status" role="status" aria-live="polite">جاهز. حمّل المثال أو افتح ملف استبيان.</p>
       <div id="outputs" class="outputs" hidden></div>
-      <div class="contract-note">
-        <strong>قاعدة التوزيع</strong>
-        <p>يبقى كل سؤال مع خياراته كوحدة واحدة ولا يُقسَّم بين الصفحات. الإنجليزية ثابتة في العمود الأيسر والعربية في العمود الأيمن، ومستطيل كل اختيار يمتد على صف اللغتين معاً ولا يظهر في الطباعة.</p>
-      </div>
+
+      <details class="json-editor">
+        <summary>
+          <span>
+            <strong>تحرير البيانات الخام (JSON)</strong>
+            <small>للتعديل المتقدم أو لصق بيانات استبيان كاملة</small>
+          </span>
+          <span class="json-summary-chip">survey.json</span>
+        </summary>
+        <div class="json-editor-body">
+          <textarea id="survey-json" spellcheck="false" aria-label="بيانات الاستبيان بصيغة JSON"></textarea>
+          <p>تُقرأ البيانات من هذا المحرر عند تحديث المعاينة أو توليد الملفات.</p>
+        </div>
+      </details>
+
+      <aside class="contract-note">
+        <span class="contract-note-icon" aria-hidden="true">i</span>
+        <div>
+          <strong>توافق نموذج OMR</strong>
+          <p>يبقى كل سؤال وخياراته كتلة واحدة. الإنجليزية في العمود الأيسر والعربية في العمود الأيمن، ومستطيل كل اختيار يمتد على صف اللغتين معاً ولا يظهر في الطباعة.</p>
+        </div>
+      </aside>
     </section>
 
-    <section class="preview-panel">
+    <section class="preview-panel" aria-labelledby="preview-title">
       <div class="panel-heading preview-heading">
         <div>
-          <h2>معاينة الصفحة</h2>
-          <p>المعاينة تستخدم تخطيط A4 نفسه المستخدم في التصدير.</p>
+          <span class="section-kicker">02 · المعاينة</span>
+          <h2 id="preview-title">معاينة الصفحة</h2>
+          <p>عرض مباشر لتخطيط A4 المستخدم في التصدير.</p>
         </div>
-        <span class="preview-indicator"><i></i> HTML</span>
+        <span class="preview-indicator"><i></i> معاينة HTML</span>
       </div>
       <div class="preview-frame-wrap">
         <iframe id="preview" title="معاينة الاستبيان" sandbox="allow-same-origin"></iframe>
         <div id="preview-empty" class="preview-empty">
-          <span class="paper-icon">▤</span>
+          <span class="paper-icon" aria-hidden="true">▤</span>
           <strong>لا توجد معاينة بعد</strong>
           <span>اضغط «تحديث المعاينة» لعرض صفحات الاستبيان.</span>
         </div>
