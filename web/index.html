@@ -62,11 +62,41 @@
         </div>
 
         <div class="setting-separator"></div>
+        <h4 class="setting-group-title">محتوى عنوان الاستبيان</h4>
+
+        <div class="setting-control">
+          <label class="setting-field-label" for="survey-title-en">العنوان باللغة الإنجليزية</label>
+          <input id="survey-title-en" class="setting-text" type="text" maxlength="180" autocomplete="off" placeholder="Questionnaire title">
+        </div>
+        <div class="setting-control">
+          <label class="setting-field-label" for="survey-title-ar">العنوان باللغة العربية</label>
+          <input id="survey-title-ar" class="setting-text" type="text" maxlength="180" autocomplete="off" placeholder="عنوان الاستبيان">
+        </div>
+
+        <label class="setting-toggle">
+          <input id="survey-title-visible-toggle" type="checkbox" checked>
+          <span>إظهار عنوان الاستبيان في الورقة</span>
+        </label>
+        <label class="setting-toggle">
+          <input id="survey-title-bold-toggle" type="checkbox" checked>
+          <span>جعل عنوان الاستبيان عريضاً (Bold)</span>
+        </label>
+
+        <div class="setting-control">
+          <label class="setting-field-label" for="survey-title-alignment">محاذاة العنوان</label>
+          <select id="survey-title-alignment" class="setting-select">
+            <option value="center">توسيط</option>
+            <option value="right">محاذاة إلى اليمين</option>
+            <option value="left">محاذاة إلى اليسار</option>
+          </select>
+        </div>
+
+        <div class="setting-separator"></div>
         <h4 class="setting-group-title">أحجام العناوين</h4>
 
         <div class="setting-control">
           <div class="setting-label-row">
-            <label for="survey-title-font-value">عنوان الاستبيان (title_en / title_ar)</label>
+            <label for="survey-title-font-value">حجم عنوان الاستبيان</label>
             <span class="setting-unit">pt</span>
           </div>
           <div class="setting-input-row">
