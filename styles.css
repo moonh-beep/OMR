@@ -13,9 +13,6 @@
   --page-margin: 20mm;
   --question-font-size: 13pt;
   --option-font-size: 12pt;
-  --body-top: calc(var(--page-margin) + 4mm);
-  --body-bottom: calc(var(--page-margin) + 3mm);
-  --body-side: var(--page-margin);
   --column-gap: 8mm;
 }
 
@@ -95,10 +92,10 @@ body.survey-document {
 .body {
   position: absolute;
   z-index: 1;
-  top: var(--body-top);
-  left: var(--body-side);
-  right: var(--body-side);
-  bottom: var(--body-bottom);
+  top: calc(var(--page-margin, 20mm) + 4mm);
+  left: var(--page-margin, 20mm);
+  right: var(--page-margin, 20mm);
+  bottom: calc(var(--page-margin, 20mm) + 3mm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
