@@ -124,13 +124,16 @@ body.survey-document {
   padding: 0 0 2mm;
   border-bottom: 0.45mm solid #222;
 }
+.hd-single-title {
+  grid-template-columns: minmax(0, 1fr);
+}
 .hd-en,
 .hd-ar {
   min-width: 0;
   font-size: var(--survey-title-font-size, 12pt);
-  font-weight: 700;
+  font-weight: var(--survey-title-font-weight, 700);
   line-height: 1.2;
-  text-align: center;
+  text-align: var(--survey-title-text-align, center);
 }
 .hd-en {
   direction: ltr;
