@@ -1,6 +1,11 @@
 /**
  * Runs inside Chromium after all fonts have loaded. Pagination uses measured
  * DOM rectangles (including margins), not text-length estimates.
+ *
+ * When a complete section/question block would leave a large unusable gap,
+ * it first switches the section heading to a compact bilingual layout, then
+ * slightly tightens question spacing and typography if needed. Questions are
+ * still kept intact on one page, so their OMR regions never cross page bounds.
  */
 export function paginateInBrowser() {
   const measure = document.getElementById("measure");
@@ -13,12 +18,45 @@ export function paginateInBrowser() {
   const pages = [];
   let current = [];
   let used = 0;
+
   const outerHeight = (element) => {
     const style = getComputedStyle(element);
     return element.getBoundingClientRect().height +
       (parseFloat(style.marginTop) || 0) +
       (parseFloat(style.marginBottom) || 0);
   };
+
+  const groupHeight = (group) =>
+    group.reduce((sum, element) => sum + outerHeight(element), 0);
+
+  const applyCompactLayout = (group) => {
+    // First compact a long section heading; this usually saves the most space
+    // without changing the question or answer typography.
+    for (const element of group) {
+      if (element.classList.contains("section-title")) {
+        element.classList.add("section-title-compact");
+      }
+    }
+
+    let height = groupHeight(group);
+    if (used + height > availableHeight + 0.5) {
+      // Only tighten the question itself when the compact heading is not enough.
+      for (const element of group) {
+        if (element.classList.contains("q")) {
+          element.classList.add("q-compact");
+        }
+      }
+      height = groupHeight(group);
+    }
+    return height;
+  };
+
+  const clearCompactLayout = (group) => {
+    for (const element of group) {
+      element.classList.remove("section-title-compact", "q-compact");
+    }
+  };
+
   const addPage = () => {
     if (current.length) pages.push(current);
     current = [];
@@ -28,20 +66,44 @@ export function paginateInBrowser() {
   for (let index = 0; index < elements.length; index++) {
     const element = elements[index];
     let group = [element];
-    if (element.classList.contains("section-title") && elements[index + 1]?.classList.contains("q")) {
-      const combined = outerHeight(element) + outerHeight(elements[index + 1]);
-      if (combined <= availableHeight) {
-        group = [element, elements[index + 1]];
-        index++;
+
+    // Keep a section heading with its first question, even when the pair needs
+    // compact styling to fit. This prevents orphaned section headings.
+    if (
+      element.classList.contains("section-title") &&
+      elements[index + 1]?.classList.contains("q")
+    ) {
+      group = [element, elements[index + 1]];
+      index++;
+    }
+
+    let height = groupHeight(group);
+
+    if (used + height > availableHeight + 0.5) {
+      height = applyCompactLayout(group);
+
+      if (used + height > availableHeight + 0.5) {
+        // The compact form still cannot use the current remainder. Restore the
+        // original look and try a fresh page before shrinking anything further.
+        clearCompactLayout(group);
+        if (current.length) addPage();
+
+        height = groupHeight(group);
+        if (height > availableHeight + 0.5) {
+          height = applyCompactLayout(group);
+        }
       }
     }
 
-    const height = group.reduce((sum, node) => sum + outerHeight(node), 0);
     if (height > availableHeight + 0.5) {
-      const label = group.find((node) => node.classList.contains("q"))?.dataset.id || "غير معروف";
-      throw new Error(`السؤال ${label} أطول من المساحة القابلة للطباعة في صفحة واحدة؛ اختصره أو قلّل محتواه. لا يتم تقسيم السؤال بين الصفحات.`);
+      const label =
+        group.find((node) => node.classList.contains("q"))?.dataset.id ||
+        "غير معروف";
+      throw new Error(
+        `السؤال ${label} أطول من المساحة القابلة للطباعة حتى بعد تطبيق التنسيق المضغوط؛ قلّل طول السؤال أو عدد الخيارات أو مساحة الإجابة.`,
+      );
     }
-    if (used + height > availableHeight + 0.5 && current.length) addPage();
+
     current.push(...group);
     used += height;
   }
