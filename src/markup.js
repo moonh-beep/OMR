@@ -193,6 +193,12 @@ export async function buildDocument(survey) {
   validateSurvey(survey);
 
   const [titleEn, titleAr] = resolveTitle(survey);
+  const settings = survey.layout_settings && typeof survey.layout_settings === "object"
+    ? survey.layout_settings
+    : {};
+  const questionFontPt = Math.min(18, Math.max(9, Number(settings.questionFontPt) || 13));
+  const optionFontPt = Math.max(8, questionFontPt - 1);
+  const pageMarginMm = Math.min(30, Math.max(12, Number(settings.pageMarginMm) || 20));
 
   const title =
     `<header class="hd">` +
@@ -240,7 +246,7 @@ ${css}
   </style>
 </head>
 
-<body class="survey-document">
+<body class="survey-document" style="--question-font-size:${questionFontPt}pt; --option-font-size:${optionFontPt}pt; --page-margin:${pageMarginMm}mm;">
 
   <main id="measure" aria-label="Questionnaire measurement area">
     ${blocks.join("\n")}
