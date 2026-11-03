@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const CSS_PATH = path.resolve(HERE, "../styles.css");
+const CSS_PATH = path.resolve(HERE, "styles.css");
 
 // ==========================================
 // HTML escaping
