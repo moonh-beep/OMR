@@ -22,7 +22,7 @@ function clamp(value, min, max, fallback) {
 
 function setLayoutControls(settings = {}) {
   const font = clamp(settings.questionFontPt, 9, 18, DEFAULT_LAYOUT.questionFontPt);
-  const margin = clamp(settings.pageMarginMm, 12, 30, DEFAULT_LAYOUT.pageMarginMm);
+  const margin = clamp(settings.pageMarginMm, 18, 30, DEFAULT_LAYOUT.pageMarginMm);
   fontRange.value = String(font);
   fontNumber.value = String(font);
   marginRange.value = String(margin);
@@ -50,7 +50,7 @@ function bindSettingPair(range, number, min, max, fallback) {
 }
 
 bindSettingPair(fontRange, fontNumber, 9, 18, DEFAULT_LAYOUT.questionFontPt);
-bindSettingPair(marginRange, marginNumber, 12, 30, DEFAULT_LAYOUT.pageMarginMm);
+bindSettingPair(marginRange, marginNumber, 18, 30, DEFAULT_LAYOUT.pageMarginMm);
 
 async function loadSample() {
   const response = await fetch("/api/survey", {
@@ -75,7 +75,7 @@ function readSurvey() {
   }
   survey.layout_settings = {
     questionFontPt: clamp(fontNumber.value, 9, 18, DEFAULT_LAYOUT.questionFontPt),
-    pageMarginMm: clamp(marginNumber.value, 12, 30, DEFAULT_LAYOUT.pageMarginMm),
+    pageMarginMm: clamp(marginNumber.value, 18, 30, DEFAULT_LAYOUT.pageMarginMm),
   };
   return survey;
 }
