@@ -11,8 +11,28 @@ const fontRange = document.getElementById("question-font-range");
 const fontNumber = document.getElementById("question-font-value");
 const marginRange = document.getElementById("page-margin-range");
 const marginNumber = document.getElementById("page-margin-value");
+const surveyTitleFontRange = document.getElementById("survey-title-font-range");
+const surveyTitleFontNumber = document.getElementById("survey-title-font-value");
+const sectionTitleFontRange = document.getElementById("section-title-font-range");
+const sectionTitleFontNumber = document.getElementById("section-title-font-value");
 
-const DEFAULT_LAYOUT = Object.freeze({ questionFontPt: 13, pageMarginMm: 20 });
+const bodyBoldToggle = document.getElementById("body-bold-toggle");
+const surveyTitleUnderlineToggle = document.getElementById("survey-title-underline-toggle");
+const sectionTitleUnderlineToggle = document.getElementById("section-title-underline-toggle");
+const surveyTitleDividerToggle = document.getElementById("survey-title-divider-toggle");
+const sectionTitleDividerToggle = document.getElementById("section-title-divider-toggle");
+
+const DEFAULT_LAYOUT = Object.freeze({
+  questionFontPt: 13,
+  pageMarginMm: 20,
+  surveyTitleFontPt: 12,
+  sectionTitleFontPt: 12,
+  bodyBold: false,
+  surveyTitleUnderline: false,
+  sectionTitleUnderline: true,
+  surveyTitleDivider: true,
+  sectionTitleDivider: true,
+});
 
 function clamp(value, min, max, fallback) {
   const number = Number(value);
@@ -23,10 +43,23 @@ function clamp(value, min, max, fallback) {
 function setLayoutControls(settings = {}) {
   const font = clamp(settings.questionFontPt, 9, 18, DEFAULT_LAYOUT.questionFontPt);
   const margin = clamp(settings.pageMarginMm, 18, 30, DEFAULT_LAYOUT.pageMarginMm);
+  const surveyTitleFont = clamp(settings.surveyTitleFontPt, 9, 22, DEFAULT_LAYOUT.surveyTitleFontPt);
+  const sectionTitleFont = clamp(settings.sectionTitleFontPt, 9, 22, DEFAULT_LAYOUT.sectionTitleFontPt);
+
   fontRange.value = String(font);
   fontNumber.value = String(font);
   marginRange.value = String(margin);
   marginNumber.value = String(margin);
+  surveyTitleFontRange.value = String(surveyTitleFont);
+  surveyTitleFontNumber.value = String(surveyTitleFont);
+  sectionTitleFontRange.value = String(sectionTitleFont);
+  sectionTitleFontNumber.value = String(sectionTitleFont);
+
+  bodyBoldToggle.checked = settings.bodyBold === true;
+  surveyTitleUnderlineToggle.checked = settings.surveyTitleUnderline === true;
+  sectionTitleUnderlineToggle.checked = settings.sectionTitleUnderline !== false;
+  surveyTitleDividerToggle.checked = settings.surveyTitleDivider !== false;
+  sectionTitleDividerToggle.checked = settings.sectionTitleDivider !== false;
 }
 
 function bindSettingPair(range, number, min, max, fallback) {
@@ -51,6 +84,8 @@ function bindSettingPair(range, number, min, max, fallback) {
 
 bindSettingPair(fontRange, fontNumber, 9, 18, DEFAULT_LAYOUT.questionFontPt);
 bindSettingPair(marginRange, marginNumber, 18, 30, DEFAULT_LAYOUT.pageMarginMm);
+bindSettingPair(surveyTitleFontRange, surveyTitleFontNumber, 9, 22, DEFAULT_LAYOUT.surveyTitleFontPt);
+bindSettingPair(sectionTitleFontRange, sectionTitleFontNumber, 9, 22, DEFAULT_LAYOUT.sectionTitleFontPt);
 
 async function loadSample() {
   const response = await fetch("/api/survey", {
@@ -76,6 +111,13 @@ function readSurvey() {
   const layoutSettings = {
     questionFontPt: clamp(fontNumber.value, 9, 18, DEFAULT_LAYOUT.questionFontPt),
     pageMarginMm: clamp(marginNumber.value, 18, 30, DEFAULT_LAYOUT.pageMarginMm),
+    surveyTitleFontPt: clamp(surveyTitleFontNumber.value, 9, 22, DEFAULT_LAYOUT.surveyTitleFontPt),
+    sectionTitleFontPt: clamp(sectionTitleFontNumber.value, 9, 22, DEFAULT_LAYOUT.sectionTitleFontPt),
+    bodyBold: bodyBoldToggle.checked,
+    surveyTitleUnderline: surveyTitleUnderlineToggle.checked,
+    sectionTitleUnderline: sectionTitleUnderlineToggle.checked,
+    surveyTitleDivider: surveyTitleDividerToggle.checked,
+    sectionTitleDivider: sectionTitleDividerToggle.checked,
   };
   setLayoutControls(layoutSettings);
   survey.layout_settings = layoutSettings;
