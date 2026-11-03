@@ -1,0 +1,5 @@
+Flask>=3.0
+numpy>=1.24
+opencv-python>=4.8
+# Optional: required only when uploading PDF scans through omr.py
+PyMuPDF>=1.23

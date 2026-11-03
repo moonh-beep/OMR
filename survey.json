@@ -1,0 +1,68 @@
+{
+  "title_en": "Questionnaire",
+  "title_ar": "استبيان",
+  "sections": [
+    {
+      "id": "demographic",
+      "title_en": "Demographic information:",
+      "title_ar": "المعلومات الديموغرافية:",
+      "questions": [
+        {
+          "id": "age",
+          "type": "choice",
+          "text_en": "Age:",
+          "text_ar": "العمر:",
+          "options": [
+            { "en": "15 - 17", "ar": "15 - 17" },
+            { "en": "18 - 20", "ar": "18 - 20" },
+            { "en": "21 - 24", "ar": "21 - 24" },
+            { "en": "25 year or older", "ar": "25 فأكثر" }
+          ]
+        },
+        {
+          "id": "sex",
+          "type": "choice",
+          "text_en": "Sex:",
+          "text_ar": "الجنس:",
+          "options": [
+            { "en": "Male", "ar": "ذكر" },
+            { "en": "Female", "ar": "أنثى" }
+          ]
+        },
+        {
+          "id": "education",
+          "type": "choice",
+          "text_en": "Educational level:",
+          "text_ar": "المستوى التعليمي:",
+          "options": [
+            { "en": "High School", "ar": "ثانوية" },
+            { "en": "University", "ar": "جامعي" }
+          ]
+        },
+        {
+          "id": "institution",
+          "type": "choice",
+          "text_en": "What type of educational institution do you attend?",
+          "text_ar": "ما نوع المؤسسة التعليمية التي تدرس فيها؟",
+          "options": [
+            { "en": "Public school", "ar": "مدرسة حكومية" },
+            { "en": "Private school", "ar": "مدرسة خاصة" },
+            { "en": "Public university", "ar": "جامعة حكومية" },
+            { "en": "Private university", "ar": "جامعة خاصة" }
+          ]
+        },
+        {
+          "id": "tmj_diagnosis",
+          "type": "choice",
+          "text_en": "Have you ever been diagnosed by a healthcare professional with a temporomandibular disorder involving the jaw joint or masticatory muscles?",
+          "text_ar": "هل سبق أن شُخّصت طبياً باضطراب في المفصل الصدغي الفكي أو عضلات المضغ؟",
+          "options": [
+            { "en": "Yes", "ar": "نعم" },
+            { "en": "No", "ar": "لا" },
+            { "en": "Not sure", "ar": "لا أعلم" }
+          ]
+        }
+      ]
+    }
+  ]
+}

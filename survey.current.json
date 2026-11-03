@@ -1,0 +1,1075 @@
+{
+  "sections": [
+    {
+      "id": "demographic",
+      "options": [],
+      "questions": [
+        {
+          "id": "age",
+          "options": [
+            {
+              "ar": "15 - 17",
+              "en": "15 - 17"
+            },
+            {
+              "ar": "18 - 20",
+              "en": "18 - 20"
+            },
+            {
+              "ar": "21 - 24",
+              "en": "21 - 24"
+            },
+            {
+              "ar": "25 فأكثر",
+              "en": "25 year or older"
+            }
+          ],
+          "text_ar": "العمر:",
+          "text_en": "Age:",
+          "type": "choice"
+        },
+        {
+          "id": "sex",
+          "options": [
+            {
+              "ar": "ذكر",
+              "en": "Male"
+            },
+            {
+              "ar": "أنثى",
+              "en": "Female"
+            }
+          ],
+          "text_ar": "الجنس:",
+          "text_en": "Sex:",
+          "type": "choice"
+        },
+        {
+          "id": "education",
+          "options": [
+            {
+              "ar": "ثانوية",
+              "en": "High School"
+            },
+            {
+              "ar": "جامعي",
+              "en": "University"
+            }
+          ],
+          "text_ar": "المستوى التعليمي:",
+          "text_en": "Educational level:",
+          "type": "choice"
+        },
+        {
+          "id": "institution",
+          "options": [
+            {
+              "ar": "مدرسة حكومية",
+              "en": "Public school"
+            },
+            {
+              "ar": "مدرسة خاصة",
+              "en": "Private school"
+            },
+            {
+              "ar": "جامعة حكومية",
+              "en": "Public university"
+            },
+            {
+              "ar": "جامعة خاصة",
+              "en": "Private university"
+            }
+          ],
+          "text_ar": "ما نوع المؤسسة التعليمية التي تدرس فيها؟",
+          "text_en": "What type of educational institution do you attend?",
+          "type": "choice"
+        },
+        {
+          "id": "tmj_diagnosis",
+          "options": [
+            {
+              "ar": "نعم",
+              "en": "Yes"
+            },
+            {
+              "ar": "لا",
+              "en": "No"
+            },
+            {
+              "ar": "لا أعلم",
+              "en": "Not sure"
+            }
+          ],
+          "text_ar": "هل سبق أن شُخّصت طبياً باضطراب في المفصل الصدغي الفكي أو عضلات المضغ؟",
+          "text_en": "Have you ever been diagnosed by a healthcare professional with a temporomandibular disorder involving the jaw joint or masticatory muscles?",
+          "type": "choice"
+        }
+      ],
+      "title_ar": "المعلومات الديموغرافية:",
+      "title_en": "Demographic information:"
+    },
+    {
+      "id": "earphone_use",
+      "options": [],
+      "questions": [
+        {
+          "id": "earphone_type",
+          "options": [
+            {
+              "ar": "سماعات داخل الأذن، سلكية",
+              "en": "Wired in-ear earphones"
+            },
+            {
+              "ar": "سماعات داخل الأذن، لاسلكية",
+              "en": "Wireless in-ear earphones"
+            },
+            {
+              "ar": "سماعات على الأذن أو فوقها",
+              "en": "On-ear or over-ear headphones"
+            },
+            {
+              "ar": "أنواع أخرى",
+              "en": "Other types"
+            },
+            {
+              "ar": "لا أستخدم سماعات الأذن",
+              "en": "I do not use earphone"
+            }
+          ],
+          "text_ar": "هل تستخدم سماعات الأذن، وما نوعها الأكثر استخدامًا؟",
+          "text_en": "Do you use earphones, and which type do you use most frequently?",
+          "type": "choice"
+        },
+        {
+          "id": "earphone_duration",
+          "options": [
+            {
+              "ar": "أقل من 6 أشهر",
+              "en": "Less than 6 months"
+            },
+            {
+              "ar": "من 6 أشهر إلى أقل من سنة",
+              "en": "6 months to less than 1 year"
+            },
+            {
+              "ar": "من سنة إلى أقل من 3 سنوات",
+              "en": "1 to less than 3 years"
+            },
+            {
+              "ar": "3 سنوات فأكثر",
+              "en": "3 years or longer"
+            },
+            {
+              "ar": "لا أستخدمها بانتظام",
+              "en": "I do not use them regularly"
+            }
+          ],
+          "text_ar": "منذ متى تستخدم سماعات الأذن بانتظام؟",
+          "text_en": "How long have you been using earphones regularly?",
+          "type": "choice"
+        },
+        {
+          "id": "earphone_daily_hours",
+          "options": [
+            {
+              "ar": "أقل من ساعة",
+              "en": "Less than 1 hour"
+            },
+            {
+              "ar": "من ساعة إلى أقل من 3 ساعات",
+              "en": "1 to less than 3 hours"
+            },
+            {
+              "ar": "من 3 إلى أقل من 5 ساعات",
+              "en": "3 to less than 5 hours"
+            },
+            {
+              "ar": "من 5 إلى أقل من 8 ساعات",
+              "en": "5 to less than 8 hours"
+            },
+            {
+              "ar": "8 ساعات فأكثر",
+              "en": "8 hours or more"
+            },
+            {
+              "ar": "لا أستخدمها",
+              "en": "I do not use them"
+            }
+          ],
+          "text_ar": "ما متوسط مدة استخدامك لسماعات الأذن يوميًا؟",
+          "text_en": "What is your average daily duration of earphone use?",
+          "type": "choice"
+        },
+        {
+          "id": "earphone_purpose",
+          "options": [
+            {
+              "ar": "الاستماع إلى الموسيقى",
+              "en": "Listening to music"
+            },
+            {
+              "ar": "مشاهدة الفيديوهات",
+              "en": "Watching videos"
+            },
+            {
+              "ar": "المكالمات الهاتفية",
+              "en": "Phone calls"
+            },
+            {
+              "ar": "الدراسة والمحاضرات",
+              "en": "Studying and attending lectures"
+            },
+            {
+              "ar": "الألعاب الإلكترونية",
+              "en": "Gaming"
+            },
+            {
+              "ar": "أغراض أخرى",
+              "en": "Other purposes"
+            }
+          ],
+          "text_ar": "الغرض الأساسي من استخدام سماعات الأذن؟ (يمكن اختيار أكثر من إجابة)",
+          "text_en": "What are your main purposes for using earphones? (Select all that apply.)",
+          "type": "choice"
+        },
+        {
+          "id": "earphone_continuous_use",
+          "options": [
+            {
+              "ar": "أقل من 30 دقيقة",
+              "en": "Less than 30 minutes"
+            },
+            {
+              "ar": "من 30 دقيقة إلى أقل من ساعة",
+              "en": "minutes to less than 1 hour"
+            },
+            {
+              "ar": "من ساعة إلى أقل من ساعتين",
+              "en": "1 to less than 2 hours"
+            },
+            {
+              "ar": "ساعتان فأكثر",
+              "en": "2 hours or more"
+            }
+          ],
+          "text_ar": "كم تستمر عادةً في استخدام سماعات الأذن دون أخذ استراحة؟",
+          "text_en": "How long do you typically use earphones continuously without taking a break?",
+          "type": "choice"
+        },
+        {
+          "id": "earphone_volume",
+          "options": [
+            {
+              "ar": "منخفض",
+              "en": "Low"
+            },
+            {
+              "ar": "متوسط",
+              "en": "Moderate"
+            },
+            {
+              "ar": "مرتفع",
+              "en": "High"
+            },
+            {
+              "ar": "مرتفع جداً",
+              "en": "Very high"
+            },
+            {
+              "ar": "لا أستطيع التحديد",
+              "en": "Unable to determine"
+            }
+          ],
+          "text_ar": "ما مستوى الصوت الذي تستخدمه عادةً عند الاستماع عبر سماعات الأذن؟",
+          "text_en": "What volume level do you typically use when listening through earphones?",
+          "type": "choice"
+        },
+        {
+          "id": "earphone_pain",
+          "options": [
+            {
+              "ar": "دائمًا",
+              "en": "Always"
+            },
+            {
+              "ar": "غالبًا",
+              "en": "Often"
+            },
+            {
+              "ar": "أحيانًا",
+              "en": "Sometimes"
+            },
+            {
+              "ar": "نادرًا",
+              "en": "Rarely"
+            },
+            {
+              "ar": "أبدًا",
+              "en": "Never"
+            },
+            {
+              "ar": "لا أستخدم السماعات",
+              "en": "I do not use earphones"
+            }
+          ],
+          "text_ar": "هل تشعر بألم أو انزعاج في منطقة الأذن أو أمامها أثناء استخدام سماعات الأذن أو بعده؟",
+          "text_en": "Do you experience pain or discomfort in or around the ear, including the area immediately in front of it, during or after earphone use?",
+          "type": "choice"
+        }
+      ],
+      "title_ar": "استخدام سماعات الأذن",
+      "title_en": "Earphone Use"
+    },
+    {
+      "id": "smart_device_use",
+      "options": [],
+      "questions": [
+        {
+          "id": "devices_used",
+          "options": [
+            {
+              "ar": "الهاتف الذكي",
+              "en": "Smartphone"
+            },
+            {
+              "ar": "الجهاز اللوحي",
+              "en": "Tablet"
+            },
+            {
+              "ar": "الحاسوب المحمول",
+              "en": "Laptop"
+            },
+            {
+              "ar": "الحاسوب المكتبي",
+              "en": "Desktop computer"
+            },
+            {
+              "ar": "أجهزة أخرى",
+              "en": "Other devices"
+            }
+          ],
+          "text_ar": "ما الأجهزة الذكية التي تستخدمها بانتظام؟ (يمكن اختيار أكثر من إجابة)",
+          "text_en": "Which smart devices do you use regularly? (Select all that apply.)",
+          "type": "choice"
+        },
+        {
+          "id": "daily_screen_time",
+          "options": [
+            {
+              "ar": "أقل من ساعتين",
+              "en": "Less than 2 hours"
+            },
+            {
+              "ar": "من ساعتين إلى أقل من 4 ساعات",
+              "en": "2 to less than 4 hours"
+            },
+            {
+              "ar": "من 4 إلى أقل من 6 ساعات",
+              "en": "4 to less than 6 hours"
+            },
+            {
+              "ar": "من 6 إلى أقل من 8 ساعات",
+              "en": "6 to less than 8 hours"
+            },
+            {
+              "ar": "8 ساعات فأكثر",
+              "en": "8 hours or more"
+            }
+          ],
+          "text_ar": "ما متوسط إجمالي وقت استخدامك اليومي للأجهزة ذات الشاشات، بما يشمل الدراسة والترفيه؟",
+          "text_en": "What is your average total daily screen time, including educational and recreational use?",
+          "type": "choice"
+        },
+        {
+          "id": "smart_device_purpose",
+          "options": [
+            {
+              "ar": "الدراسة والتعلم",
+              "en": "Studying and learning"
+            },
+            {
+              "ar": "التواصل الاجتماعي",
+              "en": "Social networking"
+            },
+            {
+              "ar": "مشاهدة الفيديوهات",
+              "en": "Watching videos"
+            },
+            {
+              "ar": "الألعاب الإلكترونية",
+              "en": "Gaming"
+            },
+            {
+              "ar": "المكالمات الهاتفية",
+              "en": "Phone calls"
+            },
+            {
+              "ar": "العمل",
+              "en": "Work"
+            },
+            {
+              "ar": "أغراض أخرى",
+              "en": "Other purposes"
+            }
+          ],
+          "text_ar": "ما الغرض الأساسي من استخدام الأجهزة الذكية؟",
+          "text_en": "What are your main purposes for using smart devices? (Select all that apply.)",
+          "type": "choice"
+        },
+        {
+          "id": "smart_device_continuous_use",
+          "options": [
+            {
+              "ar": "أقل من 30 دقيقة",
+              "en": "Less than 30 minutes"
+            },
+            {
+              "ar": "من 30 دقيقة إلى أقل من ساعة",
+              "en": "30 minutes to less than 1 hour"
+            },
+            {
+              "ar": "من ساعة إلى أقل من ساعتين",
+              "en": "1 to less than 2 hours"
+            },
+            {
+              "ar": "ساعتان فأكثر",
+              "en": "2 hours or more"
+            }
+          ],
+          "text_ar": "كم تستمر عادةً في استخدام الأجهزة الذكية دون أخذ استراحة؟",
+          "text_en": "How long do you typically use smart devices continuously without taking a break?",
+          "type": "choice"
+        },
+        {
+          "id": "smartphone_posture",
+          "options": [
+            {
+              "ar": "الرأس والرقبة بوضعية مستقيمة",
+              "en": "Head and neck in a neutral position"
+            },
+            {
+              "ar": "إمالة الرأس إلى الأمام",
+              "en": "Head tilted forward"
+            },
+            {
+              "ar": "إمالة الرأس إلى أحد الجانبين",
+              "en": "Head tilted to one side"
+            },
+            {
+              "ar": "الاستلقاء أثناء الاستخدام",
+              "en": "Using the device while lying down"
+            },
+            {
+              "ar": "تتغير وضعيتي باستمرار",
+              "en": "My posture varies frequently"
+            }
+          ],
+          "text_ar": "ما الوضعية التي تتخذها غالبًا أثناء استخدام الهاتف الذكي؟",
+          "text_en": "What posture do you most commonly adopt while using a smartphone?",
+          "type": "choice"
+        },
+        {
+          "id": "jaw_clenching_smart_devices",
+          "options": [
+            {
+              "ar": "دائمًا",
+              "en": "Always"
+            },
+            {
+              "ar": "غالبًا",
+              "en": "Often"
+            },
+            {
+              "ar": "أحيانًا",
+              "en": "Sometimes"
+            },
+            {
+              "ar": "نادرًا",
+              "en": "Rarely"
+            },
+            {
+              "ar": "أبدًا",
+              "en": "Never"
+            },
+            {
+              "ar": "لا أعلم",
+              "en": "Not sure"
+            }
+          ],
+          "text_ar": "هل تلاحظ أنك تضغط على أسنانك أو تشد عضلات الفك أثناء استخدام الأجهزة الذكية؟",
+          "text_en": "Do you notice clenching your teeth or tensing your jaw muscles while using smart devices?",
+          "type": "choice"
+        },
+        {
+          "id": "neck_shoulder_pain",
+          "options": [
+            {
+              "ar": "دائمًا",
+              "en": "Always"
+            },
+            {
+              "ar": "غالبًا",
+              "en": "Often"
+            },
+            {
+              "ar": "أحيانًا",
+              "en": "Sometimes"
+            },
+            {
+              "ar": "نادرًا",
+              "en": "Rarely"
+            },
+            {
+              "ar": "أبدًا",
+              "en": "Never"
+            }
+          ],
+          "text_ar": "هل تشعر بألم أو إجهاد في الرقبة أو الكتفين بعد الاستخدام المطول للأجهزة الذكية؟",
+          "text_en": "Do you experience neck or shoulder pain or fatigue after prolonged smart device use?",
+          "type": "choice"
+        }
+      ],
+      "title_ar": "استخدام الأجهزة الذكية",
+      "title_en": "Smart Device Use"
+    },
+    {
+      "id": "tmd_symptoms",
+      "options": [],
+      "questions": [
+        {
+          "id": "tmj_pain",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تشعر بألم في منطقة المفصل الصدغي الفكي، أمام الأذن مباشرةً؟",
+          "text_en": "Do you experience pain in the temporomandibular joint area, immediately in front of the ear?",
+          "type": "choice"
+        },
+        {
+          "id": "masticatory_muscle_pain",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تشعر بألم في عضلات المضغ، مثل عضلات الخدين أو جانبي الفك؟",
+          "text_en": "Do you experience pain in the masticatory muscles, such as the cheek muscles or muscles along the sides of the jaw?",
+          "type": "choice"
+        },
+        {
+          "id": "clicking_popping",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تسمع صوت طقطقة أو فرقعة عند فتح الفم أو إغلاقه؟",
+          "text_en": "Do you hear clicking or popping sounds when opening or closing your mouth?",
+          "type": "choice"
+        },
+        {
+          "id": "pain_opening_wide",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تشعر بألم عند فتح فمك على اتساعه أو تواجه صعوبة في فتحه بصورة طبيعية؟",
+          "text_en": "Do you experience pain when opening your mouth widely or difficulty opening it normally?",
+          "type": "choice"
+        },
+        {
+          "id": "jaw_locking",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تشعر بأن فكك يعلق أو يتوقف مؤقتًا أثناء الفتح أو الإغلاق؟",
+          "text_en": "Do you experience locking or temporary restriction of jaw movement when opening or closing your mouth?",
+          "type": "choice"
+        },
+        {
+          "id": "chewing_pain",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تشعر بألم في الفك عند المضغ أو تناول الأطعمة الصلبة？",
+          "text_en": "Do you experience jaw pain while chewing or eating hard foods?",
+          "type": "choice"
+        },
+        {
+          "id": "morning_stiffness",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تشعر بتيبس أو إجهاد في الفك عند الاستيقاظ من النوم؟",
+          "text_en": "Do you experience jaw stiffness or fatigue upon waking up?",
+          "type": "choice"
+        },
+        {
+          "id": "temporal_headache",
+          "layout": "row",
+          "options": [
+            {
+              "ar": "0",
+              "en": "0"
+            },
+            {
+              "ar": "1",
+              "en": "1"
+            },
+            {
+              "ar": "2",
+              "en": "2"
+            },
+            {
+              "ar": "3",
+              "en": "3"
+            },
+            {
+              "ar": "4",
+              "en": "4"
+            }
+          ],
+          "text_ar": "هل تعاني من الصداع في منطقة الصدغين أو ألم حول الأذن يتزامن مع حركة الفك؟",
+          "text_en": "Do you experience headaches in the temporal region or pain around the ear that coincides with jaw movement?",
+          "type": "choice"
+        },
+        {
+          "id": "symptoms_interference",
+          "options": [
+            {
+              "ar": "لا تؤثر",
+              "en": "No interference"
+            },
+            {
+              "ar": "تأثير بسيط",
+              "en": "Mild interference"
+            },
+            {
+              "ar": "تأثير متوسط",
+              "en": "Moderate interference"
+            },
+            {
+              "ar": "تأثير كبير",
+              "en": "Severe interference"
+            },
+            {
+              "ar": "تأثير كبير جدًا",
+              "en": "Very severe interference"
+            }
+          ],
+          "text_ar": "هل تؤثر أعراض الفك في قدرتك على تناول الطعام أو التحدث أو التثاؤب؟",
+          "text_en": "Do jaw symptoms interfere with your ability to eat, speak, or yawn?",
+          "type": "choice"
+        },
+        {
+          "id": "doctor_consultation",
+          "options": [
+            {
+              "ar": "نعم",
+              "en": "Yes"
+            },
+            {
+              "ar": "لا",
+              "en": "No"
+            }
+          ],
+          "text_ar": "هل سبق أن راجعت طبيب أسنان أو طبيبًا بسبب ألم الفك أو طقطقته أو صعوبة حركته؟",
+          "text_en": "Have you ever consulted a dentist or physician because of jaw pain, clicking, or restricted jaw movement?",
+          "type": "choice"
+        }
+      ],
+      "title_ar": "أعراض اضطرابات المفصل الصدغي الفكي (أجب بناءً على تجربتك خلال الأشهر الثلاثة الماضية: 0 = أبدًا | 1 = نادرًا | 2 = أحيانًا | 3 = غالبًا | 4 = دائمًا)",
+      "title_en": "Symptoms of Temporomandibular Disorders (Answer based on your experience during the past three months: 0 = Never | 1 = Rarely | 2 = Sometimes | 3 = Often | 4 = Always)",
+      "layout": "stack"
+    },
+    {
+      "id": "association_device_symptoms",
+      "options": [],
+      "questions": [
+        {
+          "id": "symptoms_onset_device_increase",
+          "options": [
+            {
+              "ar": "نعم",
+              "en": "Yes"
+            },
+            {
+              "ar": "لا",
+              "en": "No"
+            },
+            {
+              "ar": "لا أتذكر",
+              "en": "Do not remember"
+            },
+            {
+              "ar": "لا أعانِ من أعراض الفك",
+              "en": "I have not experienced jaw symptoms"
+            }
+          ],
+          "text_ar": "هل لاحظت ظهور أعراض الفك بعد زيادة مدة استخدام سماعات الأذن أو الأجهزة الذكية؟",
+          "text_en": "Have you noticed the onset of jaw symptoms after increasing your use of earphones or smart devices?",
+          "type": "choice"
+        },
+        {
+          "id": "worsen_after_earphones",
+          "options": [
+            {
+              "ar": "دائمًا",
+              "en": "Always"
+            },
+            {
+              "ar": "غالبًا",
+              "en": "Often"
+            },
+            {
+              "ar": "أحيانًا",
+              "en": "Sometimes"
+            },
+            {
+              "ar": "نادرًا",
+              "en": "Rarely"
+            },
+            {
+              "ar": "أبدًا",
+              "en": "Never"
+            },
+            {
+              "ar": "لا أستخدم السماعات",
+              "en": "I do not use earphones"
+            },
+            {
+              "ar": "لا أعاني من أعراض الفك",
+              "en": "I do not experience jaw symptoms"
+            }
+          ],
+          "text_ar": "هل تزداد أعراض الفك بعد الاستخدام المطول لسماعات الأذن؟",
+          "text_en": "Do your jaw symptoms worsen after prolonged earphone use?",
+          "type": "choice"
+        },
+        {
+          "id": "worsen_after_smart_devices",
+          "options": [
+            {
+              "ar": "دائمًا",
+              "en": "Always"
+            },
+            {
+              "ar": "غالبًا",
+              "en": "Often"
+            },
+            {
+              "ar": "أحيانًا",
+              "en": "Sometimes"
+            },
+            {
+              "ar": "نادرًا",
+              "en": "Rarely"
+            },
+            {
+              "ar": "أبدًا",
+              "en": "Never"
+            },
+            {
+              "ar": "لا أعاني من أعراض الفك",
+              "en": "I do not experience jaw symptoms"
+            }
+          ],
+          "text_ar": "هل تزداد أعراض الفك بعد الاستخدام المطول للأجهزة الذكية؟",
+          "text_en": "Do your jaw symptoms worsen after prolonged smart device use?",
+          "type": "choice"
+        },
+        {
+          "id": "improvement_reducing_use",
+          "options": [
+            {
+              "ar": "نعم",
+              "en": "Yes"
+            },
+            {
+              "ar": "لا",
+              "en": "No"
+            },
+            {
+              "ar": "لم أجرب تقليل الاستخدام",
+              "en": "I have not tried reducing my use"
+            },
+            {
+              "ar": "أعانِ من أعراض الفك",
+              "en": "I have not experienced jaw symptoms"
+            }
+          ],
+          "text_ar": "هل لاحظت تحسنًا في أعراض الفك عند تقليل استخدام سماعات الأذن أو الأجهزة الذكية؟",
+          "text_en": "Have you noticed an improvement in your jaw symptoms after reducing your use of earphones or smart devices?",
+          "type": "choice"
+        },
+        {
+          "id": "symptoms_increase_longer_days",
+          "options": [
+            {
+              "ar": "بوضوح نعم",
+              "en": "Yes, noticeably"
+            },
+            {
+              "ar": "نعم، بدرجة بسيطة",
+              "en": "No"
+            },
+            {
+              "ar": "لا ألاحظ تغيرًا",
+              "en": "No noticeable change"
+            },
+            {
+              "ar": "لا أستطيع التحديد",
+              "en": "Unable to determine"
+            },
+            {
+              "ar": "لا أعاني من أعراض الفك",
+              "en": "I do not experience jaw symptoms"
+            }
+          ],
+          "text_ar": "في الأيام التي تستخدم فيها السماعات أو الأجهزة الذكية لفترات أطول من المعتاد، هل تلاحظ زيادة في أعراض الفك؟",
+          "text_en": "On days when you use earphones or smart devices for longer than usual, do you notice an increase in jaw symptoms?",
+          "type": "choice"
+        }
+      ],
+      "title_ar": "الارتباط المحتمل بين استخدام الأجهزة وأعراض الفك",
+      "title_en": "Potential Association Between Device Use and Jaw Symptoms"
+    },
+    {
+      "id": "associated_health_behavioral_factors",
+      "options": [],
+      "questions": [
+        {
+          "id": "teeth_grinding",
+          "options": [
+            {
+              "ar": "أثناء النهار فقط نعم",
+              "en": "Yes, during sleep only"
+            },
+            {
+              "ar": "نعم، أثناء النوم فقط",
+              "en": "No, while awake only"
+            },
+            {
+              "ar": "نعم، في الحالتين",
+              "en": "both during sleep and while awake"
+            },
+            {
+              "ar": "لا",
+              "en": "No"
+            },
+            {
+              "ar": "لا أعلم",
+              "en": "Not sure"
+            }
+          ],
+          "text_ar": "هل تطحن أسنانك أو تضغط عليها بقوة أثناء النوم أو أثناء النهار؟",
+          "text_en": "Do you grind or clench your teeth during sleep or while awake?",
+          "type": "choice"
+        },
+        {
+          "id": "stress_level",
+          "options": [
+            {
+              "ar": "منخفض",
+              "en": "Low"
+            },
+            {
+              "ar": "متوسط",
+              "en": "Moderate"
+            },
+            {
+              "ar": "مرتفع",
+              "en": "High"
+            }
+          ],
+          "text_ar": "مستوى التوتر",
+          "text_en": "Stress level",
+          "type": "choice"
+        },
+        {
+          "id": "sleep_quality",
+          "options": [
+            {
+              "ar": "جيدة",
+              "en": "Good"
+            },
+            {
+              "ar": "متوسطة",
+              "en": "Fair"
+            },
+            {
+              "ar": "سيئة",
+              "en": "Poor"
+            }
+          ],
+          "text_ar": "جودة النوم",
+          "text_en": "Sleep quality",
+          "type": "choice"
+        },
+        {
+          "id": "injury_or_condition",
+          "options": [
+            {
+              "ar": "نعم، تعرضت لإصابة",
+              "en": "Yes, I have sustained an injury"
+            },
+            {
+              "ar": "نعم، أعاني من حالة صحية مشخصة",
+              "en": "Yes, I have a diagnosed medical condition"
+            },
+            {
+              "ar": "نعم، في الحالتين",
+              "en": "Yes, both"
+            },
+            {
+              "ar": "لا",
+              "en": "No"
+            }
+          ],
+          "text_ar": "هل سبق أن تعرضت لإصابة في الفك أو الوجه، أو تعاني من حالة صحية مشخصة تؤثر في المفاصل أو العضلات؟",
+          "text_en": "Have you ever sustained an injury to your jaw or face, or been diagnosed with a medical condition affecting your joints or muscles?",
+          "type": "choice"
+        }
+      ],
+      "title_ar": "العوامل الصحية والسلوكية المرتبطة",
+      "title_en": "Associated Health and Behavioral Factors"
+    }
+  ],
+  "title_ar": "استبيان",
+  "title_en": "Questionnaire"
+}

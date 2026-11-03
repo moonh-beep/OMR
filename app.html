@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>نظام الاستبيانات الورقية</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",Tahoma,sans-serif;background:#eceff1;height:100vh;display:flex;flex-direction:column;color:#263238}
+header{background:#263238;color:#fff;display:flex;align-items:center;gap:5px;padding:0 14px;flex-wrap:wrap;z-index:2;box-shadow:0 2px 8px #0002}header h1{font-size:17px;margin:0 14px 0 18px;padding:12px 0;white-space:nowrap}
+.tab{background:none;border:0;color:#b0bec5;padding:14px 13px;font:inherit;cursor:pointer;border-bottom:3px solid transparent;border-radius:0}.tab.on{color:#fff;border-color:#66bb6a}.tab small{background:#455a64;border-radius:10px;padding:1px 7px;margin-right:4px}
+#st{margin-right:auto;font-size:12px;color:#b0bec5;white-space:nowrap}main{flex:1;min-height:0;overflow:auto;padding:16px}section{display:none;max-width:1050px;margin:0 auto;height:100%}section.on{display:block}#sec-review{max-width:none;height:100%;margin:-16px}#sec-tpl{max-width:1500px;height:100%}
+iframe{width:100%;height:100%;min-height:650px;border:0;display:block;background:#fff;border-radius:9px}#sec-tpl iframe{height:calc(100vh - 100px);min-height:680px;box-shadow:0 1px 5px #0002}#sec-review iframe{height:100%;min-height:0;border-radius:0}
+.card{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px #0002;margin-bottom:14px}h2{margin:0 0 10px;font-size:18px}button,.btn{font:inherit;padding:8px 15px;border:1px solid #9e9e9e;border-radius:6px;background:#fafafa;cursor:pointer;text-decoration:none;color:#263238;display:inline-block}button.pri,.btn.pri{background:#2e7d32;color:#fff;border:0}button:disabled{opacity:.45;cursor:not-allowed}input,select{font:inherit;padding:7px;border:1px solid #bbb;border-radius:6px}
+table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:7px;text-align:right;font-size:13px}th{background:#f5f5f5}#drop{border:3px dashed #90a4ae;border-radius:12px;padding:35px 10px;text-align:center;color:#546e7a;cursor:pointer;background:#fafafa}#drop.over{border-color:#2e7d32;background:#e8f5e9}.msg{padding:10px;border-radius:8px;margin-top:10px;white-space:pre-wrap}.msg.ok{background:#e8f5e9;border:1px solid #2e7d32}.msg.bad{background:#ffebee;border:1px solid #c62828}.row{display:flex;gap:11px;align-items:center;flex-wrap:wrap;margin-top:10px}.files{max-height:130px;overflow:auto;font-size:13px;margin-top:8px;color:#455a64}.hint{color:#607d8b;font-size:13px}.spin{display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:r 1s linear infinite;vertical-align:middle;margin-left:6px}@keyframes r{to{transform:rotate(360deg)}}.muted{color:#78909c;font-size:13px}
+@media(max-width:850px){header h1{width:100%;padding:8px 0 2px}header{gap:0}.tab{padding:10px 8px;font-size:13px}#st{display:none}main{padding:9px}#sec-review{margin:-9px}#sec-tpl iframe{height:calc(100vh - 122px)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>📋 نظام الاستبيانات الورقية</h1>
+  <button class="tab on" data-t="tpl">① تصميم القالب</button>
+  <button class="tab" data-t="up">② رفع ومعالجة</button>
+  <button class="tab" data-t="review">③ المراجعة <small id="rv">0/0</small></button>
+  <button class="tab" data-t="res">④ النتائج</button>
+  <span id="st">جارٍ الاتصال...</span>
+</header>
+<main>
+<section id="sec-tpl" class="on">
+  <iframe id="generator-frame" src="/generator" title="محرك إنشاء قوالب الاستبيانات"></iframe>
+</section>
+<section id="sec-up">
+  <div class="card">
+    <h2>رفع الأوراق الممسوحة ومعالجتها</h2>
+    <div id="drop">اسحب الصور أو ملفات PDF إلى هنا، أو اضغط للاختيار<br><small>PNG · JPG · TIF · BMP · PDF — يمكن رفع عدة ملفات دفعة واحدة</small></div>
+    <input type="file" id="fin" multiple accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp,.pdf,image/*,application/pdf" hidden>
+    <div class="files" id="fl"></div>
+    <div class="row">
+      <label>رقم الصفحة: <select id="pg"><option value="">اكتشاف تلقائي</option></select></label>
+      <label><input type="checkbox" id="fresh"> مسح الدفعة السابقة وبدء جديد</label>
+      <button class="pri" id="go" disabled>معالجة</button>
+      <button id="clear-files">إفراغ القائمة</button>
+    </div>
+    <p class="hint">تُرتَّب ملفات الصور حسب الاسم، وتُجمَّع الصفحات المتتالية في استبيان واحد، ويكتشف البرنامج رقم الصفحة تلقائياً عند وجود علامات الزوايا. حدّد رقم الصفحة يدوياً فقط عند الحاجة.</p>
+    <div id="pmsg"></div>
+  </div>
+</section>
+<section id="sec-review"><iframe id="review-frame" src="about:blank" title="مراجعة الإجابات"></iframe></section>
+<section id="sec-res">
+  <div class="card">
+    <h2>النتائج المحفوظة</h2>
+    <div class="row" style="margin:0 0 10px">
+      <a class="btn pri" href="/api/export.csv">⬇ CSV (Excel)</a>
+      <a class="btn" href="/api/export.json">⬇ JSON</a>
+      <button id="reset-all" style="margin-right:auto;color:#c62828">حذف كل البيانات المعالجة</button>
+    </div>
+    <div style="overflow:auto"><table id="rt"></table></div>
+  </div>
+</section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let files = [], state = {};
+
+function message(target, text, ok=false) {
+  $(target).innerHTML = text ? `<div class="msg ${ok ? 'ok' : 'bad'}">${esc(text)}</div>` : '';
+}
+async function jsonFetch(url, options={}) {
+  const response = await fetch(url, options);
+  let payload;
+  try { payload = await response.json(); } catch { throw new Error('استجابة غير مفهومة من الخادم.'); }
+  if (!response.ok || payload.ok === false) throw new Error(payload.error || 'تعذر تنفيذ العملية.');
+  return payload;
+}
+function show(tab) {
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  document.querySelectorAll('main section').forEach(s => s.classList.toggle('on', s.id === 'sec-' + tab));
+  $('main').style.padding = tab === 'review' ? '0' : '16px';
+  if (tab === 'review') $('#review-frame').src = '/review?' + Date.now();
+  if (tab === 'res') loadResults();
+  refreshStatus();
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => show(b.dataset.t)));
+
+async function refreshStatus() {
+  try {
+    state = await jsonFetch('/api/status');
+    $('#rv').textContent = `${state.reviewed}/${state.sheets}`;
+    $('#st').textContent = state.template ? `القالب: ${state.pages} صفحة · ${state.questions} سؤال` : 'لم يُنشأ قالب بعد';
+    const select = $('#pg'), previous = select.value;
+    select.innerHTML = '<option value="">اكتشاف تلقائي</option>' + Array.from({length: state.pages}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
+    select.value = previous;
+    updateUploadButton();
+  } catch (error) { $('#st').textContent = 'تعذر الاتصال بالخادم'; }
+}
+
+const drop = $('#drop'), fileInput = $('#fin');
+drop.addEventListener('click', () => fileInput.click());
+['dragover','dragenter'].forEach(name => drop.addEventListener(name, event => {event.preventDefault();drop.classList.add('over');}));
+['dragleave','drop'].forEach(name => drop.addEventListener(name, event => {event.preventDefault();drop.classList.remove('over');}));
+drop.addEventListener('drop', event => addFiles(event.dataTransfer.files));
+fileInput.addEventListener('change', () => {addFiles(fileInput.files);fileInput.value='';});
+function addFiles(list) {
+  for (const file of list) {
+    if (/\.(png|jpe?g|tiff?|bmp|pdf)$/i.test(file.name) && !files.some(x => x.name === file.name && x.size === file.size)) files.push(file);
+  }
+  drawFiles();
+}
+function drawFiles() {
+  const mb = files.reduce((sum, file) => sum + file.size, 0) / 1048576;
+  $('#fl').textContent = files.length ? `${files.length} ملف (${mb.toFixed(1)} MB): ` + files.map(f => f.name).join(' ، ') : '';
+  updateUploadButton();
+}
+function updateUploadButton() { $('#go').disabled = !files.length || !state.template; }
+$('#clear-files').addEventListener('click', () => {files=[];drawFiles();message('#pmsg','');});
+
+$('#go').addEventListener('click', async () => {
+  const button = $('#go'); button.disabled = true; button.innerHTML = 'جارٍ المعالجة<span class="spin"></span>'; message('#pmsg','');
+  const form = new FormData(); files.forEach(file => form.append('files', file));
+  form.append('fresh', $('#fresh').checked ? '1' : '0'); form.append('page', $('#pg').value);
+  try {
+    const result = await jsonFetch('/api/process', {method:'POST',body:form});
+    message('#pmsg', `اكتملت المعالجة.\nالأوراق: ${result.sheets} | الصور: ${result.images} | أخطاء المحاذاة: ${result.errors} | إجابات تحتاج مراجعة: ${result.flagged}\nانتقل إلى تبويب المراجعة.`, true);
+    files=[];drawFiles();$('#fresh').checked=false;
+  } catch (error) { message('#pmsg', error.message); }
+  finally {button.textContent='معالجة';await refreshStatus();}
+});
+
+async function loadResults() {
+  try {
+    const result = await jsonFetch('/api/results');
+    const table = $('#rt');
+    if (!result.rows.length) {table.innerHTML='<tr><td>لا توجد نتائج محفوظة بعد. عالج الأوراق ثم راجعها واحفظها.</td></tr>';return;}
+    table.innerHTML = '<tr><th>الورقة</th>' + result.questions.map(q => `<th>${esc(q.text)}</th>`).join('') + '</tr>' +
+      result.rows.map(row => `<tr><td>${esc(row.sheet_id)}</td>${result.questions.map(q => `<td>${esc(row.answers?.[q.id] || '—')}</td>`).join('')}</tr>`).join('');
+  } catch (error) { $('#rt').innerHTML = `<tr><td>${esc(error.message)}</td></tr>`; }
+}
+$('#reset-all').addEventListener('click', async () => {
+  if (!confirm('سيُحذف كل ما عولج ورُوجع، ولن يُحذف قالب الاستبيان. هل تريد المتابعة؟')) return;
+  try {await jsonFetch('/api/reset',{method:'POST'});await loadResults();await refreshStatus();if(!$('#review-frame').src.endsWith('about:blank'))$('#review-frame').src='/review?'+Date.now();}
+  catch(error){alert(error.message);}
+});
+
+refreshStatus();
+</script>
+</body>
+</html>

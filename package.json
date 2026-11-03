@@ -1,0 +1,15 @@
+{
+  "name": "questionnaire-web-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HTML/CSS/JavaScript bilingual questionnaire template generator with OMR-compatible layout export.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "generate": "node cli.js",
+    "test": "node tests/run-tests.js"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

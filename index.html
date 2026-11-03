@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>منشئ قوالب الاستبيانات</title>
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">QUESTIONNAIRE WEB ENGINE</p>
+      <h1>منشئ قوالب الاستبيانات</h1>
+      <p class="subtitle">تصميم ثنائي اللغة وتصدير PDF وPNG مع إحداثيات متوافقة بنيوياً مع تنسيق OMR الحالي.</p>
+    </div>
+    <div class="top-actions">
+      <button id="load-sample" class="button button-muted" type="button">تحميل آخر استبيان</button>
+      <label class="button button-muted file-button">فتح ملف JSON<input id="file-input" type="file" accept="application/json,.json"></label>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="editor-panel">
+      <div class="panel-heading">
+        <div>
+          <h2>بيانات الاستبيان</h2>
+          <p>عدّل JSON ثم حدّث المعاينة أو أنشئ الملفات.</p>
+        </div>
+        <span class="format-chip">survey.json</span>
+      </div>
+      <textarea id="survey-json" spellcheck="false" aria-label="بيانات الاستبيان بصيغة JSON"></textarea>
+      <div class="editor-actions">
+        <button id="preview-button" class="button button-secondary" type="button">تحديث المعاينة</button>
+        <button id="generate-button" class="button button-primary" type="button">توليد PDF وPNG وJSON</button>
+      </div>
+      <p id="status" class="status" role="status">جاهز. حمّل المثال أو الصق بيانات الاستبيان.</p>
+      <div id="outputs" class="outputs" hidden></div>
+      <div class="contract-note">
+        <strong>قاعدة التوزيع</strong>
+        <p>الإنجليزية ثابتة في العمود الأيسر والعربية في العمود الأيمن. مستطيل كل اختيار يمتد على صف اللغتين معاً ولا يظهر في الطباعة.</p>
+      </div>
+    </section>
+
+    <section class="preview-panel">
+      <div class="panel-heading preview-heading">
+        <div>
+          <h2>معاينة الصفحة</h2>
+          <p>المعاينة تستخدم تخطيط A4 نفسه المستخدم في التصدير.</p>
+        </div>
+        <span class="preview-indicator"><i></i> HTML</span>
+      </div>
+      <div class="preview-frame-wrap">
+        <iframe id="preview" title="معاينة الاستبيان" sandbox="allow-same-origin"></iframe>
+        <div id="preview-empty" class="preview-empty">
+          <span class="paper-icon">▤</span>
+          <strong>لا توجد معاينة بعد</strong>
+          <span>اضغط «تحديث المعاينة» لعرض صفحات الاستبيان.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

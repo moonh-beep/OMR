@@ -1,0 +1,402 @@
+@page {
+  size: 210mm 297mm;
+  margin: 0;
+}
+
+:root {
+  color-scheme: light;
+  --ink: #111;
+  --rule: #333;
+  --soft-rule: #777;
+  --page-width: 210mm;
+  --page-height: 297mm;
+  --body-top: 24mm;
+  --body-bottom: 23mm;
+  --body-side: 20mm;
+  --column-gap: 8mm;
+}
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  background: #fff;
+}
+body.survey-document {
+  font-family:
+    Georgia, "Times New Roman", "Noto Naskh Arabic", "DejaVu Serif", serif;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.page {
+  position: relative;
+  width: var(--page-width);
+  height: var(--page-height);
+  overflow: hidden;
+  page-break-after: always;
+  break-after: page;
+  background: #fff;
+}
+.page:last-child {
+  page-break-after: auto;
+  break-after: auto;
+}
+
+/* OMR anchors deliberately retain the existing 8 mm size and 6 mm inset. */
+.mk {
+  position: absolute;
+  z-index: 3;
+  width: 8mm;
+  height: 8mm;
+  background: #000;
+}
+.mk.tl {
+  top: 6mm;
+  left: 6mm;
+}
+.mk.tr {
+  top: 6mm;
+  right: 6mm;
+}
+.mk.br {
+  right: 6mm;
+  bottom: 6mm;
+}
+.mk.bl {
+  bottom: 6mm;
+  left: 6mm;
+}
+
+.frame {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  top: 15.5mm;
+  right: 15.5mm;
+  bottom: 15.5mm;
+  left: 15.5mm;
+  border: 0.32mm solid #222;
+}
+.frame::after {
+  content: "";
+  position: absolute;
+  inset: 1.1mm;
+  border: 0.14mm solid #777;
+}
+
+.body {
+  position: absolute;
+  z-index: 1;
+  top: var(--body-top);
+  left: var(--body-side);
+  right: var(--body-side);
+  bottom: var(--body-bottom);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+#measure {
+  position: absolute;
+  visibility: hidden;
+  width: 170mm;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.hd {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--column-gap);
+  direction: ltr;
+  align-items: center;
+  margin: 0 0 8mm;
+  padding: 0 0 3mm;
+  border-bottom: 0.45mm solid #222;
+}
+.hd-en,
+.hd-ar {
+  min-width: 0;
+  font-size: 21pt;
+  font-weight: 700;
+  line-height: 1.28;
+  text-align: center;
+}
+.hd-en {
+  direction: ltr;
+}
+.hd-ar {
+  direction: rtl;
+  font-family: "Noto Naskh Arabic", "Amiri", "DejaVu Sans", serif;
+}
+.hd-en:empty,
+.hd-ar:empty {
+  display: block;
+}
+
+.section-title {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--column-gap);
+  direction: ltr;
+  align-items: start;
+  margin: 0 0 6mm;
+  padding: 0 0 1.2mm;
+  border-bottom: 0.28mm solid #777;
+  break-after: avoid;
+}
+.section-title-en,
+.section-title-ar {
+  min-width: 0;
+  font-size: 15pt;
+  font-weight: 700;
+  line-height: 1.45;
+  text-decoration: underline;
+  text-underline-offset: 1.2mm;
+}
+.section-title-en {
+  direction: ltr;
+  text-align: left;
+}
+.section-title-ar {
+  direction: rtl;
+  text-align: right;
+  font-family: "Noto Naskh Arabic", "Amiri", "DejaVu Sans", serif;
+}
+
+/* Optional: "layout": "stack" on a section — English above Arabic. */
+.section-title-stack {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 1mm;
+}
+.section-title-stack .section-title-en {
+  grid-row: 1;
+}
+.section-title-stack .section-title-ar {
+  grid-row: 2;
+}
+.section-title-stack .section-title-en:empty,
+.section-title-stack .section-title-ar:empty {
+  display: none;
+}
+
+.q {
+  width: 100%;
+  margin: 0 0 4mm;
+  display: flow-root;
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+.qt {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--column-gap);
+  direction: ltr;
+  align-items: start;
+  font-size: 13pt;
+  font-weight: 400;
+  line-height: 1.42;
+  margin-bottom: 1.5mm;
+}
+.qt-en {
+  min-width: 0;
+  direction: ltr;
+  text-align: left;
+}
+.qt-ar {
+  min-width: 0;
+  direction: rtl;
+  text-align: right;
+  font-family: "Noto Naskh Arabic", "Amiri", "DejaVu Sans", serif;
+}
+.qnum {
+  display: inline-block;
+  margin-right: 1.5mm;
+  font-family: Georgia, "Times New Roman", serif;
+}
+.qt-ar .qnum {
+  margin-right: 0;
+  margin-left: 1.5mm;
+}
+
+.opts {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.7mm;
+  margin-top: 1.2mm;
+}
+/* One invisible region per bilingual answer, spanning both language columns. */
+.opt {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--column-gap);
+  direction: ltr;
+  align-items: center;
+  padding: 0.65mm 1.5mm;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #111;
+  font-size: 12pt;
+  line-height: 1.5;
+  white-space: normal;
+}
+/* A single visible checkbox belongs to the bilingual answer row.
+   It sits before the English text; the Arabic column remains on the right.
+   The existing .opt rectangle continues to be the one OMR region. */
+
+/* Checkbox مشتركة في الحجم، مستقلة في كل عمود */
+.opt-check {
+  position: static;
+  display: inline-block;
+  flex: 0 0 5.2mm;
+  width: 5.2mm;
+  height: 5.2mm;
+  min-width: 5.2mm;
+  border: 0.32mm solid #222;
+  border-radius: 0.45mm;
+  background: #fff;
+  transform: none;
+  margin: 0 2mm;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+/* English: checkbox ثم النص من اليسار إلى اليمين */
+.opt-en {
+  grid-column: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  direction: ltr;
+  text-align: left;
+  justify-self: stretch;
+  padding: 0;
+  gap: 2mm;
+}
+
+/* Arabic: checkbox ثم النص من اليمين إلى اليسار */
+.opt-ar {
+  grid-column: 2;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  direction: rtl;
+  text-align: right;
+  justify-self: stretch;
+  padding: 0;
+  gap: 2mm;
+  font-family: "Noto Naskh Arabic", "Amiri", "DejaVu Sans", serif;
+}
+
+.opt-label {
+  display: inline-block;
+  min-width: 0;
+}
+
+/* Optional: "layout": "row" on a question — options side by side.
+   English options 1..N on the left half, Arabic options 1..N on the right half
+   (aligned under the question text columns). */
+.opts-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: var(--column-gap);
+  direction: ltr;
+}
+.opts-side {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr));
+  column-gap: 1mm;
+  row-gap: 1.5mm;
+  align-items: start;
+  min-width: 0;
+}
+.opts-side-en {
+  direction: ltr;
+}
+.opts-side-ar {
+  direction: rtl;
+}
+.opts-row .opt.opt-single {
+  display: block;
+  padding: 0.65mm 0.5mm;
+}
+.opts-row .opt-en,
+.opts-row .opt-ar {
+  grid-column: auto;
+  gap: 1mm;
+}
+.opts-row .opt-check {
+  margin: 0 0.5mm;
+}
+
+.tb {
+  width: 100%;
+  border: 0.28mm solid #555;
+  margin-top: 2mm;
+  background: #fff;
+}
+.foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8mm;
+  text-align: center;
+  color: #555;
+  font-family: "Noto Naskh Arabic", "DejaVu Sans", serif;
+  font-size: 9pt;
+}
+
+@media screen {
+  body.survey-document {
+    background: #e8eaed;
+    padding: 16px 0;
+  }
+  #pages {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .page {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.16);
+    flex: none;
+  }
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+  #pages {
+    display: block;
+  }
+  .page {
+    box-shadow: none;
+    margin: 0;
+  }
+}
