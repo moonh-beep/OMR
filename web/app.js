@@ -601,7 +601,7 @@ async function refreshPreviewDocument(survey = null) {
 }
 
 function reorderQuestionsFromPreview(orderedIds, movedQuestionId) {
-  if (previewReorderPending) return;
+  if (previewReorderPending || previewButton.disabled || generateButton.disabled) return;
   const currentIds = builderQuestions.map(question => question.id);
   const uniqueIds = new Set(orderedIds);
   if (
@@ -707,7 +707,7 @@ function installPreviewQuestionSorting() {
   }
 
   function beginDrag(question, handle, event) {
-    if (event.button !== 0 || previewReorderPending) return;
+    if (event.button !== 0 || previewReorderPending || previewButton.disabled || generateButton.disabled) return;
     event.preventDefault();
     const state = {
       question,
