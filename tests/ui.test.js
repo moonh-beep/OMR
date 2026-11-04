@@ -39,7 +39,7 @@ const requiredIds = [
 test("redesigned interface preserves every JavaScript control ID exactly once", () => {
   for (const id of requiredIds) {
     const matches = html.match(new RegExp(`id=["']${id}["']`, "g")) ?? [];
-    assert.equal(matches, 1, `Expected one element with id="${id}"`);
+    assert.equal(matches.length, 1, `Expected one element with id="${id}"`);
   }
 });
 
