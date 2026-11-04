@@ -165,3 +165,30 @@ test("builder preserves section layout metadata and exports editable source JSON
   assert.match(editorJs, /__survey_json__/);
   assert.match(editorJs, /new Blob\(\[JSON\.stringify\(survey, null, 2\)\]/);
 });
+
+
+test("preview exposes smooth pointer-based drag sorting for whole questions", () => {
+  assert.match(html, /id="preview-sort-help"/);
+  assert.match(editorJs, /function installPreviewQuestionSorting/);
+  assert.match(editorJs, /function updateDropMarker/);
+  assert.match(editorJs, /function reorderQuestionsFromPreview/);
+  assert.match(editorJs, /pointerdown/);
+  assert.match(editorJs, /pointermove/);
+  assert.match(editorJs, /pointerup/);
+  assert.match(editorJs, /pointercancel/);
+  assert.match(editorJs, /touch-action:none/);
+  assert.match(editorJs, /doc\.defaultView\.scrollBy\(0, -16\)/);
+  assert.match(editorJs, /doc\.defaultView\.scrollBy\(0, 16\)/);
+  assert.match(editorJs, /\.page \.body > \.q\[data-id\]/);
+  assert.match(editorJs, /refreshPreviewDocument\(\)/);
+  assert.match(editorJs, /previewReorderPending/);
+  assert.ok(editorJs.includes("state.marker.parentNode !== targetBody || state.marker.nextSibling !== reference"));
+});
+
+test("preview question sorting supports keyboard movement and preserves question IDs", () => {
+  assert.match(editorJs, /aria-keyshortcuts/);
+  assert.match(editorJs, /ArrowUp/);
+  assert.match(editorJs, /ArrowDown/);
+  assert.match(editorJs, /new Map\(builderQuestions\.map\(question => \[question\.id, question\]\)\)/);
+  assert.match(editorJs, /uniqueIds\.size !== currentIds\.length/);
+});
