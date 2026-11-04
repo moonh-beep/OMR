@@ -242,6 +242,8 @@ function syncBuilderToEditor() {
         title_ar: question.section_ar
       };
       delete item.section.questions;
+      delete item.section.title;
+      delete item.section.name;
     } else {
       delete item.section;
     }
