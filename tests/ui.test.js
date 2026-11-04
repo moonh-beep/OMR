@@ -177,8 +177,8 @@ test("preview exposes smooth pointer-based drag sorting for whole questions", ()
   assert.match(editorJs, /pointerup/);
   assert.match(editorJs, /pointercancel/);
   assert.match(editorJs, /touch-action:none/);
-  assert.match(editorJs, /\\.page \\.body > \\.q\\[data-id\\]/);
-  assert.match(editorJs, /refreshPreviewDocument\\(\\)/);
+  assert.match(editorJs, /\.page \.body > \.q\[data-id\]/);
+  assert.match(editorJs, /refreshPreviewDocument\(\)/);
   assert.match(editorJs, /previewReorderPending/);
 });
 
@@ -186,6 +186,6 @@ test("preview question sorting supports keyboard movement and preserves question
   assert.match(editorJs, /aria-keyshortcuts/);
   assert.match(editorJs, /ArrowUp/);
   assert.match(editorJs, /ArrowDown/);
-  assert.match(editorJs, /new Map\\(builderQuestions\\.map\\(question => \\[question\\.id, question\\]\\)\\)/);
-  assert.match(editorJs, /uniqueIds\\.size !== currentIds\\.length/);
+  assert.match(editorJs, /new Map\(builderQuestions\.map\(question => \[question\.id, question\]\)\)/);
+  assert.match(editorJs, /uniqueIds\.size !== currentIds\.length/);
 });
