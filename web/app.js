@@ -641,7 +641,7 @@ function installPreviewQuestionSorting() {
   const style = doc.createElement("style");
   style.textContent = [
     ".page .body { overflow: visible; }",
-    ".q.preview-sortable { position: relative; }",
+    ".q.preview-sortable { position: relative; transition: opacity .12s ease; }",
     ".preview-sort-handle { position:absolute; left:-29px; top:0; z-index:8; display:grid; place-items:center; width:23px; height:27px; padding:0; border:1px solid #d5e0de; border-radius:6px; background:#f7fbfa; color:#50736e; box-shadow:0 1px 4px rgba(20,45,42,.12); font:700 16px/1 Arial,sans-serif; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; opacity:.78; transition:background .14s ease,color .14s ease,opacity .14s ease,transform .14s ease; }",
     ".preview-sort-handle:hover,.preview-sort-handle:focus-visible { opacity:1; background:#e7f2f0; color:#1f625b; transform:scale(1.05); outline:2px solid rgba(40,100,95,.22); outline-offset:2px; }",
     ".preview-sort-handle:active { cursor:grabbing; }",
@@ -732,6 +732,10 @@ function installPreviewQuestionSorting() {
         question.classList.add("preview-sort-source");
         doc.body.classList.add("preview-sort-active");
       }
+      const edge = 44;
+      const viewportHeight = doc.documentElement.clientHeight;
+      if (moveEvent.clientY < edge) doc.defaultView.scrollBy(0, -16);
+      else if (moveEvent.clientY > viewportHeight - edge) doc.defaultView.scrollBy(0, 16);
       updateDropMarker(state, moveEvent);
     };
     state.onUp = upEvent => {
