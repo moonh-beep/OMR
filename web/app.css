@@ -746,3 +746,29 @@ html.embedded .layout-controls {
   .option-editor-row { grid-template-columns: 20px minmax(0,1fr) minmax(0,1fr) 23px; gap: 4px; }
   .question-tools { gap: 1px; }
 }
+
+.question-type-field {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 3px;
+}
+.question-type-field label {
+  color: #64737c;
+  font-size: 8px;
+  font-weight: 750;
+}
+.question-type-select {
+  min-height: 31px;
+  min-width: 135px;
+  padding: 5px 8px;
+  border: 1px solid #dce4e7;
+  border-radius: 7px;
+  background: #fff;
+  color: #33464f;
+  font: 9px "Noto Sans Arabic", "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+.question-type-select:focus { outline: none; border-color: #83a8a7; }
