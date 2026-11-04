@@ -26,8 +26,9 @@ jobs:
         with:
           python-version: "3.11"
       - run: python -m pip install --upgrade pip
-      - run: python -m pip install numpy opencv-python-headless
+      - run: python -m pip install Flask>=3.0 numpy opencv-python-headless
       - run: python -m py_compile app.py omr.py
+      - run: python -m unittest discover -s tests -p "test_ui_routes.py" -v
       - run: python -m unittest discover -s tests -p "test_omr_unit.py" -v
 
   template-integration:
