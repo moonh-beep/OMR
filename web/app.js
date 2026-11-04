@@ -129,6 +129,362 @@ function setSurveyTitleFields(survey) {
   surveyTitleArInput.value = title.ar;
 }
 
+const questionList = document.getElementById("question-list");
+const questionCount = document.getElementById("question-count");
+const addQuestionButton = document.getElementById("add-question");
+let builderQuestions = [];
+
+function pairText(value, en = "", ar = "") {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    en = en || value.en || value.text_en || value.label_en || "";
+    ar = ar || value.ar || value.text_ar || value.label_ar || "";
+    if (!en && !ar) {
+      const fallback = value.text || value.label || value.value || "";
+      if (/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(String(fallback))) ar = fallback;
+      else en = fallback;
+    }
+  } else if (value != null && !en && !ar) {
+    if (/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]/.test(String(value))) ar = value;
+    else en = value;
+  }
+  return { en: String(en || ""), ar: String(ar || "") };
+}
+
+function questionSection(question, sectionMap, nestedSection = null) {
+  let section = nestedSection;
+  if (!section) {
+    const reference = question.section ?? question.section_id ?? question.section_title;
+    if (reference && typeof reference === "object") section = reference;
+    else if (reference != null) section = sectionMap.get(String(reference)) ?? reference;
+  }
+  if (!section && (question.section_en || question.section_ar)) {
+    section = { title_en: question.section_en || "", title_ar: question.section_ar || "" };
+  }
+  return section;
+}
+
+function setQuestionBuilderFromSurvey(survey = {}) {
+  const sectionMap = new Map();
+  for (const section of survey.sections || []) {
+    if (section && typeof section === "object" && section.id != null) {
+      sectionMap.set(String(section.id), section);
+    }
+  }
+  let entries = [];
+  if (Array.isArray(survey.questions) && survey.questions.length) {
+    entries = survey.questions.map(question => [question, questionSection(question, sectionMap)]);
+  } else {
+    entries = (survey.sections || []).flatMap(section =>
+      (section?.questions || []).map(question => [question, section])
+    );
+  }
+
+  builderQuestions = entries.filter(([question]) => question && typeof question === "object").map(([question, section], index) => {
+    const prompt = pairText(question.text, question.text_en, question.text_ar);
+    const sectionTitle = pairText(
+      section && typeof section === "object" ? (section.title ?? section.name) : section,
+      section?.title_en ?? section?.name_en ?? question.section_en ?? "",
+      section?.title_ar ?? section?.name_ar ?? question.section_ar ?? ""
+    );
+    return {
+      id: String(question.id ?? ("question_" + (index + 1))),
+      type: question.type === "text" ? "text" : "choice",
+      text_en: prompt.en,
+      text_ar: prompt.ar,
+      section_en: sectionTitle.en,
+      section_ar: sectionTitle.ar,
+      height_mm: clamp(question.height_mm, 5, 150, 20),
+      source: { ...question },
+      options: (Array.isArray(question.options) ? question.options : []).map(option => {
+        const pair = pairText(option);
+        return {
+          en: pair.en,
+          ar: pair.ar,
+          source: option && typeof option === "object" ? { ...option } : {}
+        };
+      })
+    };
+  });
+  renderQuestionBuilder();
+}
+
+function nextQuestionId() {
+  let index = 1;
+  while (builderQuestions.some(question => question.id === "question_" + index)) index++;
+  return "question_" + index;
+}
+
+function syncBuilderToEditor() {
+  let survey;
+  try {
+    survey = JSON.parse(editor.value || "{}");
+  } catch {
+    survey = {};
+  }
+  survey.questions = builderQuestions.map(question => {
+    const item = { ...question.source, id: question.id, type: question.type };
+    delete item.text;
+    delete item.section;
+    delete item.section_id;
+    delete item.section_title;
+    item.text_en = question.text_en;
+    item.text_ar = question.text_ar;
+    if (question.section_en || question.section_ar) {
+      item.section_en = question.section_en;
+      item.section_ar = question.section_ar;
+    } else {
+      delete item.section_en;
+      delete item.section_ar;
+    }
+    if (question.type === "choice") {
+      item.options = question.options.map(option => {
+        const output = { ...option.source, en: option.en, ar: option.ar };
+        delete output.text;
+        delete output.text_en;
+        delete output.text_ar;
+        delete output.label;
+        delete output.label_en;
+        delete output.label_ar;
+        delete output.value;
+        return output;
+      });
+      delete item.height_mm;
+    } else {
+      delete item.options;
+      item.height_mm = question.height_mm;
+    }
+    return item;
+  });
+  delete survey.sections;
+  editor.value = JSON.stringify(survey, null, 2);
+}
+
+function createQuestionField(labelText, value, direction, onInput, options = {}) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "question-field";
+  const label = document.createElement("label");
+  label.textContent = labelText;
+  const control = options.multiline
+    ? document.createElement("textarea")
+    : document.createElement("input");
+  if (!options.multiline) control.type = options.type || "text";
+  if (options.min != null) control.min = String(options.min);
+  if (options.max != null) control.max = String(options.max);
+  if (options.step != null) control.step = String(options.step);
+  control.value = String(value ?? "");
+  control.dir = direction || "auto";
+  control.placeholder = options.placeholder || "";
+  if (options.multiline) control.rows = options.rows || 2;
+  control.addEventListener("input", () => onInput(control.value));
+  wrapper.append(label, control);
+  return wrapper;
+}
+
+function createQuestionTool(label, symbol, handler, danger = false, disabled = false) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "question-tool" + (danger ? " danger" : "");
+  button.textContent = symbol;
+  button.title = label;
+  button.setAttribute("aria-label", label);
+  button.disabled = disabled;
+  button.addEventListener("click", handler);
+  return button;
+}
+
+function renderQuestionBuilder() {
+  questionList.replaceChildren();
+  questionCount.textContent = builderQuestions.length + " سؤال";
+  if (!builderQuestions.length) {
+    const empty = document.createElement("div");
+    empty.className = "question-empty";
+    empty.textContent = "لا توجد أسئلة في الاستبيان بعد. أضف سؤالك الأول للبدء.";
+    questionList.append(empty);
+    return;
+  }
+
+  builderQuestions.forEach((question, index) => {
+    const card = document.createElement("article");
+    card.className = "question-item";
+
+    const heading = document.createElement("div");
+    heading.className = "question-item-header";
+    const number = document.createElement("span");
+    number.className = "question-index";
+    number.textContent = String(index + 1);
+    const id = document.createElement("span");
+    id.className = "question-id";
+    id.textContent = "ID: " + question.id;
+    const tools = document.createElement("div");
+    tools.className = "question-tools";
+    tools.append(
+      createQuestionTool("نقل السؤال للأعلى", "↑", () => moveQuestion(index, -1), false, index === 0),
+      createQuestionTool("نقل السؤال للأسفل", "↓", () => moveQuestion(index, 1), false, index === builderQuestions.length - 1),
+      createQuestionTool("نسخ السؤال", "▢", () => duplicateQuestion(index)),
+      createQuestionTool("حذف السؤال", "×", () => removeQuestion(index), true)
+    );
+    heading.append(number, id, tools);
+
+    const fields = document.createElement("div");
+    fields.className = "question-fields";
+    fields.append(
+      createQuestionField("نص السؤال بالعربية", question.text_ar, "rtl", value => { question.text_ar = value; syncBuilderToEditor(); }, { multiline: true, placeholder: "اكتب نص السؤال بالعربية" }),
+      createQuestionField("Question text in English", question.text_en, "ltr", value => { question.text_en = value; syncBuilderToEditor(); }, { multiline: true, placeholder: "Write the question in English" }),
+      createQuestionField("عنوان القسم بالعربية (اختياري)", question.section_ar, "rtl", value => { question.section_ar = value; syncBuilderToEditor(); }, { placeholder: "مثال: البيانات الشخصية" }),
+      createQuestionField("Section title in English (optional)", question.section_en, "ltr", value => { question.section_en = value; syncBuilderToEditor(); }, { placeholder: "e.g. Personal information" })
+    );
+
+    const typeField = document.createElement("div");
+    typeField.className = "question-type-field";
+    const typeLabel = document.createElement("label");
+    typeLabel.textContent = "نوع السؤال";
+    const typeSelect = document.createElement("select");
+    typeSelect.className = "question-type-select";
+    [["choice", "اختيار من متعدد"], ["text", "إجابة نصية"]].forEach(([value, label]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      typeSelect.append(option);
+    });
+    typeSelect.value = question.type;
+    typeSelect.addEventListener("change", () => {
+      question.type = typeSelect.value;
+      if (question.type === "choice" && !question.options.length) {
+        question.options = [
+          { en: "Option 1", ar: "الخيار 1", source: {} },
+          { en: "Option 2", ar: "الخيار 2", source: {} }
+        ];
+      }
+      syncBuilderToEditor();
+      renderQuestionBuilder();
+    });
+    typeField.append(typeLabel, typeSelect);
+    fields.append(typeField);
+
+    card.append(heading, fields);
+
+    if (question.type === "choice") {
+      const optionsSection = document.createElement("div");
+      optionsSection.className = "question-subsection";
+      const optionsHeading = document.createElement("div");
+      optionsHeading.className = "question-subsection-heading";
+      const optionsTitle = document.createElement("strong");
+      optionsTitle.textContent = "خيارات الإجابة";
+      const optionsHint = document.createElement("small");
+      optionsHint.textContent = "اكتب المقابل العربي والإنجليزي لكل خيار";
+      optionsHeading.append(optionsTitle, optionsHint);
+      const optionsList = document.createElement("div");
+      optionsList.className = "option-editor-list";
+
+      question.options.forEach((option, optionIndex) => {
+        const row = document.createElement("div");
+        row.className = "option-editor-row";
+        const optionNumber = document.createElement("span");
+        optionNumber.className = "option-index";
+        optionNumber.textContent = String(optionIndex + 1);
+        const english = document.createElement("input");
+        english.type = "text";
+        english.dir = "ltr";
+        english.placeholder = "English option";
+        english.setAttribute("aria-label", "الخيار " + (optionIndex + 1) + " بالإنجليزية");
+        english.value = option.en;
+        english.addEventListener("input", () => { option.en = english.value; syncBuilderToEditor(); });
+        const arabic = document.createElement("input");
+        arabic.type = "text";
+        arabic.dir = "rtl";
+        arabic.placeholder = "الخيار بالعربية";
+        arabic.setAttribute("aria-label", "الخيار " + (optionIndex + 1) + " بالعربية");
+        arabic.value = option.ar;
+        arabic.addEventListener("input", () => { option.ar = arabic.value; syncBuilderToEditor(); });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "option-remove";
+        remove.textContent = "×";
+        remove.title = "حذف الخيار";
+        remove.setAttribute("aria-label", "حذف الخيار " + (optionIndex + 1));
+        remove.addEventListener("click", () => {
+          question.options.splice(optionIndex, 1);
+          syncBuilderToEditor();
+          renderQuestionBuilder();
+        });
+        row.append(optionNumber, english, arabic, remove);
+        optionsList.append(row);
+      });
+
+      const addOption = document.createElement("button");
+      addOption.type = "button";
+      addOption.className = "add-option";
+      addOption.textContent = "＋ إضافة خيار";
+      addOption.addEventListener("click", () => {
+        const next = question.options.length + 1;
+        question.options.push({ en: "Option " + next, ar: "الخيار " + next, source: {} });
+        syncBuilderToEditor();
+        renderQuestionBuilder();
+      });
+      optionsSection.append(optionsHeading, optionsList, addOption);
+      card.append(optionsSection);
+    } else {
+      const responseSection = document.createElement("div");
+      responseSection.className = "question-subsection";
+      const responseField = createQuestionField(
+        "ارتفاع مساحة الإجابة",
+        question.height_mm,
+        "ltr",
+        value => { question.height_mm = clamp(value, 5, 150, 20); syncBuilderToEditor(); },
+        { type: "number", min: 5, max: 150 }
+      );
+      const note = document.createElement("p");
+      note.className = "text-question-note";
+      note.textContent = "لن يستخرج محرك OMR الإجابة المكتوبة تلقائياً؛ تُراجع وتُدخل يدوياً بعد مسح الورقة.";
+      responseSection.append(responseField, note);
+      card.append(responseSection);
+    }
+
+    questionList.append(card);
+  });
+}
+
+function moveQuestion(index, direction) {
+  const target = index + direction;
+  if (target < 0 || target >= builderQuestions.length) return;
+  [builderQuestions[index], builderQuestions[target]] = [builderQuestions[target], builderQuestions[index]];
+  syncBuilderToEditor();
+  renderQuestionBuilder();
+}
+function removeQuestion(index) {
+  builderQuestions.splice(index, 1);
+  syncBuilderToEditor();
+  renderQuestionBuilder();
+}
+function duplicateQuestion(index) {
+  const original = builderQuestions[index];
+  if (!original) return;
+  const copy = JSON.parse(JSON.stringify(original));
+  copy.id = nextQuestionId();
+  builderQuestions.splice(index + 1, 0, copy);
+  syncBuilderToEditor();
+  renderQuestionBuilder();
+}
+addQuestionButton.addEventListener("click", () => {
+  const number = builderQuestions.length + 1;
+  builderQuestions.push({
+    id: nextQuestionId(),
+    type: "choice",
+    text_en: "",
+    text_ar: "",
+    section_en: "",
+    section_ar: "",
+    height_mm: 20,
+    source: {},
+    options: [
+      { en: "Option 1", ar: "الخيار 1", source: {} },
+      { en: "Option 2", ar: "الخيار 2", source: {} }
+    ]
+  });
+  syncBuilderToEditor();
+  renderQuestionBuilder();
+});
+
 editor.addEventListener("input", () => {
   try {
     const survey = JSON.parse(editor.value);
@@ -137,6 +493,9 @@ editor.addEventListener("input", () => {
   } catch {
     // Keep the last valid controls while the user is editing incomplete JSON.
   }
+});
+editor.addEventListener("change", () => {
+  try { setQuestionBuilderFromSurvey(JSON.parse(editor.value)); } catch { /* keep the last valid question list */ }
 });
 
 async function loadSample() {
@@ -152,6 +511,7 @@ async function loadSample() {
   editor.value = JSON.stringify(survey, null, 2);
   setSurveyTitleFields(survey);
   setLayoutControls(survey.layout_settings || DEFAULT_LAYOUT);
+  setQuestionBuilderFromSurvey(survey);
 }
 
 function readSurvey() {
@@ -307,6 +667,7 @@ fileInput.addEventListener("change", async () => {
     editor.value = JSON.stringify(survey, null, 2);
     setSurveyTitleFields(survey);
     setLayoutControls(survey.layout_settings || DEFAULT_LAYOUT);
+    setQuestionBuilderFromSurvey(survey);
     setStatus(`تم تحميل الملف ${file.name}.`, "success");
   } catch (error) {
     setStatus(`تعذرت قراءة الملف: ${error.message}`, "error");
