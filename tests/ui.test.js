@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { Script } from "node:vm";
 
 const html = readFileSync(new URL("../web/index.html", import.meta.url), "utf8");
 const css = readFileSync(new URL("../web/app.css", import.meta.url), "utf8");
@@ -106,4 +107,14 @@ test("review workspace keeps all existing interaction IDs and supports narrow sc
 test("integrated generator mode hides its duplicate global header", () => {
   assert.match(html, /classList\.add\("embedded"\)/);
   assert.match(css, /html\.embedded \.topbar\s*\{\s*display:\s*none;/);
+});
+
+
+test("main application and review inline scripts are syntactically valid JavaScript", () => {
+  const appScript = appHtml.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  const reviewScript = reviewHtml.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(appScript, "Missing main application script");
+  assert.ok(reviewScript, "Missing review application script");
+  assert.doesNotThrow(() => new Script(appScript, { filename: "web/app.html" }));
+  assert.doesNotThrow(() => new Script(reviewScript, { filename: "review.html" }));
 });
