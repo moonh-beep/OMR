@@ -584,6 +584,196 @@ async function postJson(url, body) {
 }
 
 // ==========================================
+// معاينة تفاعلية: ترتيب الأسئلة بالسحب من الورقة
+// ==========================================
+
+let focusPreviewQuestionAfterRefresh = null;
+
+async function refreshPreviewDocument(survey = null) {
+  const source = survey || readSurvey();
+  const result = await postJson("/api/preview", source);
+  preview.srcdoc = result.html;
+  previewEmpty.hidden = true;
+  return result;
+}
+
+function reorderQuestionsFromPreview(orderedIds, movedQuestionId) {
+  const currentIds = builderQuestions.map(question => question.id);
+  const uniqueIds = new Set(orderedIds);
+  if (
+    orderedIds.length !== currentIds.length ||
+    uniqueIds.size !== currentIds.length ||
+    currentIds.some(id => !uniqueIds.has(id))
+  ) {
+    setStatus("تعذر اعتماد الترتيب؛ لم تتطابق الأسئلة الظاهرة مع قائمة الاستبيان.", "error");
+    return;
+  }
+
+  const byId = new Map(builderQuestions.map(question => [question.id, question]));
+  const nextQuestions = orderedIds.map(id => byId.get(id));
+  if (nextQuestions.every((question, index) => question === builderQuestions[index])) return;
+
+  builderQuestions = nextQuestions;
+  syncBuilderToEditor();
+  renderQuestionBuilder();
+  focusPreviewQuestionAfterRefresh = movedQuestionId || null;
+
+  setStatus("تم حفظ ترتيب الأسئلة. جارٍ تحديث توزيع الصفحات والمعاينة...");
+  refreshPreviewDocument()
+    .then(() => setStatus("تم تحديث ترتيب الأسئلة والصفحات بنجاح.", "success"))
+    .catch(error => setStatus("تم حفظ الترتيب، لكن تعذّر تحديث المعاينة: " + error.message, "error"));
+}
+
+function installPreviewQuestionSorting() {
+  let doc;
+  try { doc = preview.contentDocument; } catch { return; }
+  if (!doc?.body || doc.body.dataset.questionSortingReady === "true") return;
+
+  const questions = Array.from(doc.querySelectorAll(".page .body > .q[data-id]"));
+  if (!questions.length) return;
+
+  const style = doc.createElement("style");
+  style.textContent = [
+    ".q.preview-sortable { position: relative; }",
+    ".preview-sort-handle { position:absolute; left:-29px; top:0; z-index:8; display:grid; place-items:center; width:23px; height:27px; padding:0; border:1px solid #d5e0de; border-radius:6px; background:#f7fbfa; color:#50736e; box-shadow:0 1px 4px rgba(20,45,42,.12); font:700 16px/1 Arial,sans-serif; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; opacity:.78; transition:background .14s ease,color .14s ease,opacity .14s ease,transform .14s ease; }",
+    ".preview-sort-handle:hover,.preview-sort-handle:focus-visible { opacity:1; background:#e7f2f0; color:#1f625b; transform:scale(1.05); outline:2px solid rgba(40,100,95,.22); outline-offset:2px; }",
+    ".preview-sort-handle:active { cursor:grabbing; }",
+    ".q.preview-sort-source { opacity:.3; }",
+    ".preview-sort-marker { position:relative; z-index:7; height:0; min-height:0; margin:2mm 0; border-top:2px solid #28645f; pointer-events:none; }",
+    ".preview-sort-marker::after { content:''; position:absolute; top:-5px; inset-inline-start:-3px; width:8px; height:8px; border-radius:50%; background:#28645f; }",
+    ".preview-sort-active { cursor:grabbing !important; user-select:none !important; }",
+    "@media print { .preview-sort-handle,.preview-sort-marker { display:none !important; } }"
+  ].join("\n");
+  doc.head.append(style);
+  doc.body.dataset.questionSortingReady = "true";
+
+  function finishDrag(state, cancelled = false) {
+    doc.removeEventListener("pointermove", state.onMove);
+    doc.removeEventListener("pointerup", state.onUp);
+    doc.removeEventListener("pointercancel", state.onCancel);
+    doc.body.classList.remove("preview-sort-active");
+    state.question.classList.remove("preview-sort-source");
+
+    if (cancelled || !state.didMove || !state.marker.parentNode) {
+      state.marker.remove();
+      return;
+    }
+
+    state.marker.parentNode.insertBefore(state.question, state.marker);
+    state.marker.remove();
+    const orderedIds = Array.from(doc.querySelectorAll(".page .body > .q[data-id]"))
+      .map(question => question.dataset.id);
+    reorderQuestionsFromPreview(orderedIds, state.question.dataset.id);
+  }
+
+  function updateDropMarker(state, event) {
+    const hit = doc.elementFromPoint(event.clientX, event.clientY);
+    const targetQuestion = hit?.closest?.(".q[data-id]") || null;
+    const targetBody = hit?.closest?.(".body") ||
+      targetQuestion?.parentElement?.closest?.(".body") || null;
+    if (!targetBody) return;
+
+    let anchor = targetQuestion && targetQuestion !== state.question ? targetQuestion : null;
+    if (!anchor) {
+      const candidates = Array.from(targetBody.querySelectorAll(":scope > .q[data-id]"))
+        .filter(question => question !== state.question);
+      if (candidates.length) {
+        anchor = candidates.reduce((nearest, candidate) => {
+          const rect = candidate.getBoundingClientRect();
+          const distance = Math.abs(rect.top + rect.height / 2 - event.clientY);
+          if (!nearest || distance < nearest.distance) return { question: candidate, distance };
+          return nearest;
+        }, null)?.question || null;
+      }
+    }
+
+    if (anchor) {
+      const rect = anchor.getBoundingClientRect();
+      const insertAfter = event.clientY > rect.top + rect.height / 2;
+      const reference = insertAfter ? anchor.nextSibling : anchor;
+      if (reference !== state.marker && state.marker.nextSibling !== reference) {
+        targetBody.insertBefore(state.marker, reference);
+      }
+    } else if (state.marker.parentNode !== targetBody || state.marker !== targetBody.lastElementChild) {
+      targetBody.append(state.marker);
+    }
+  }
+
+  function beginDrag(question, handle, event) {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    const state = {
+      question,
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      didMove: false,
+      marker: doc.createElement("div"),
+      onMove: null,
+      onUp: null,
+      onCancel: null
+    };
+    state.marker.className = "preview-sort-marker";
+    state.marker.setAttribute("aria-hidden", "true");
+
+    state.onMove = moveEvent => {
+      if (moveEvent.pointerId !== state.pointerId) return;
+      const distance = Math.hypot(moveEvent.clientX - state.startX, moveEvent.clientY - state.startY);
+      if (!state.didMove && distance < 5) return;
+      if (!state.didMove) {
+        state.didMove = true;
+        question.classList.add("preview-sort-source");
+        doc.body.classList.add("preview-sort-active");
+      }
+      updateDropMarker(state, moveEvent);
+    };
+    state.onUp = upEvent => {
+      if (upEvent.pointerId === state.pointerId) finishDrag(state, false);
+    };
+    state.onCancel = cancelEvent => {
+      if (cancelEvent.pointerId === state.pointerId) finishDrag(state, true);
+    };
+
+    doc.addEventListener("pointermove", state.onMove);
+    doc.addEventListener("pointerup", state.onUp);
+    doc.addEventListener("pointercancel", state.onCancel);
+    try { handle.setPointerCapture(event.pointerId); } catch { /* not required in every browser */ }
+  }
+
+  for (const question of questions) {
+    question.classList.add("preview-sortable");
+    const handle = doc.createElement("button");
+    handle.type = "button";
+    handle.className = "preview-sort-handle";
+    handle.textContent = "⠿";
+    handle.title = "اسحب لإعادة ترتيب السؤال";
+    handle.setAttribute("aria-label", "إعادة ترتيب السؤال " + question.dataset.id + ". استخدم السهم الأعلى أو الأسفل للتحريك.");
+    handle.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown");
+    handle.addEventListener("pointerdown", event => beginDrag(question, handle, event));
+    handle.addEventListener("keydown", event => {
+      if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+      event.preventDefault();
+      const ids = Array.from(doc.querySelectorAll(".page .body > .q[data-id]"))
+        .map(item => item.dataset.id);
+      const index = ids.indexOf(question.dataset.id);
+      const next = index + (event.key === "ArrowUp" ? -1 : 1);
+      if (index < 0 || next < 0 || next >= ids.length) return;
+      [ids[index], ids[next]] = [ids[next], ids[index]];
+      reorderQuestionsFromPreview(ids, question.dataset.id);
+    });
+    question.prepend(handle);
+  }
+
+  if (focusPreviewQuestionAfterRefresh) {
+    const target = questions.find(question => question.dataset.id === focusPreviewQuestionAfterRefresh);
+    target?.querySelector(".preview-sort-handle")?.focus({ preventScroll: true });
+    focusPreviewQuestionAfterRefresh = null;
+  }
+}
+
+preview.addEventListener("load", installPreviewQuestionSorting);
+
+// ==========================================
 // تحديث المعاينة
 // ==========================================
 
@@ -591,11 +781,8 @@ previewButton.addEventListener("click", async () => {
   try {
     previewButton.disabled = true;
     setStatus("جارٍ قياس عناصر الصفحة وتجهيز المعاينة...");
-    const survey = readSurvey();
-    const result = await postJson("/api/preview", survey);
-    preview.srcdoc = result.html;
-    previewEmpty.hidden = true;
-    setStatus("تم تحديث المعاينة بنجاح.", "success");
+    await refreshPreviewDocument();
+    setStatus("تم تحديث المعاينة بنجاح. اسحب مقبض السؤال لتغيير ترتيبه.", "success");
   } catch (error) {
     setStatus(error.message, "error");
   } finally {
@@ -649,9 +836,7 @@ generateButton.addEventListener("click", async () => {
       "success",
     );
 
-    const previewResult = await postJson("/api/preview", survey);
-    preview.srcdoc = previewResult.html;
-    previewEmpty.hidden = true;
+    await refreshPreviewDocument(survey);
   } catch (error) {
     setStatus(error.message, "error");
   } finally {
