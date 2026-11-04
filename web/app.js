@@ -194,6 +194,9 @@ function setQuestionBuilderFromSurvey(survey = {}) {
       text_ar: prompt.ar,
       section_en: sectionTitle.en,
       section_ar: sectionTitle.ar,
+      sectionSource: section && typeof section === "object"
+        ? (() => { const source = { ...section }; delete source.questions; return source; })()
+        : null,
       height_mm: clamp(question.height_mm, 5, 150, 20),
       source: { ...question },
       options: (Array.isArray(question.options) ? question.options : []).map(option => {
@@ -230,12 +233,17 @@ function syncBuilderToEditor() {
     delete item.section_title;
     item.text_en = question.text_en;
     item.text_ar = question.text_ar;
+    delete item.section_en;
+    delete item.section_ar;
     if (question.section_en || question.section_ar) {
-      item.section_en = question.section_en;
-      item.section_ar = question.section_ar;
+      item.section = {
+        ...(question.sectionSource || {}),
+        title_en: question.section_en,
+        title_ar: question.section_ar
+      };
+      delete item.section.questions;
     } else {
-      delete item.section_en;
-      delete item.section_ar;
+      delete item.section;
     }
     if (question.type === "choice") {
       item.options = question.options.map(option => {
