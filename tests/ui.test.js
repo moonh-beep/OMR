@@ -177,6 +177,8 @@ test("preview exposes smooth pointer-based drag sorting for whole questions", ()
   assert.match(editorJs, /pointerup/);
   assert.match(editorJs, /pointercancel/);
   assert.match(editorJs, /touch-action:none/);
+  assert.match(editorJs, /doc\.defaultView\.scrollBy\(0, -16\)/);
+  assert.match(editorJs, /doc\.defaultView\.scrollBy\(0, 16\)/);
   assert.match(editorJs, /\.page \.body > \.q\[data-id\]/);
   assert.match(editorJs, /refreshPreviewDocument\(\)/);
   assert.match(editorJs, /previewReorderPending/);
