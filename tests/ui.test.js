@@ -180,6 +180,7 @@ test("preview exposes smooth pointer-based drag sorting for whole questions", ()
   assert.match(editorJs, /\.page \.body > \.q\[data-id\]/);
   assert.match(editorJs, /refreshPreviewDocument\(\)/);
   assert.match(editorJs, /previewReorderPending/);
+  assert.ok(editorJs.includes("state.marker.parentNode !== targetBody || state.marker.nextSibling !== reference"));
 });
 
 test("preview question sorting supports keyboard movement and preserves question IDs", () => {
