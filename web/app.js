@@ -6,6 +6,7 @@ const outputs = document.getElementById("outputs");
 const previewButton = document.getElementById("preview-button");
 const generateButton = document.getElementById("generate-button");
 const fileInput = document.getElementById("file-input");
+let surveyDownloadUrl = null;
 
 const fontRange = document.getElementById("question-font-range");
 const fontNumber = document.getElementById("question-font-value");
@@ -608,6 +609,7 @@ generateButton.addEventListener("click", async () => {
       ["PDF", "survey.pdf"],
       ["layout.json", "layout.json"],
       ["HTML", "preview.html"],
+      ["survey.json", "__survey_json__"],
       ...result.files
         .filter((name) => name.endsWith(".png"))
         .map((name) => [`PNG ${name}`, name]),
@@ -616,10 +618,17 @@ generateButton.addEventListener("click", async () => {
     outputs.replaceChildren(
       ...names.map(([label, file]) => {
         const link = document.createElement("a");
-        link.href = `/template/${encodeURIComponent(file)}`;
+        if (file === "__survey_json__") {
+          if (surveyDownloadUrl) URL.revokeObjectURL(surveyDownloadUrl);
+          surveyDownloadUrl = URL.createObjectURL(new Blob([JSON.stringify(survey, null, 2)], { type: "application/json;charset=utf-8" }));
+          link.href = surveyDownloadUrl;
+          link.download = "survey.json";
+        } else {
+          link.href = `/template/${encodeURIComponent(file)}`;
+          link.target = "_blank";
+          link.rel = "noopener";
+        }
         link.textContent = label;
-        link.target = "_blank";
-        link.rel = "noopener";
         return link;
       }),
     );
