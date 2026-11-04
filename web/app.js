@@ -588,16 +588,20 @@ async function postJson(url, body) {
 // ==========================================
 
 let focusPreviewQuestionAfterRefresh = null;
+let previewReorderPending = false;
 
 async function refreshPreviewDocument(survey = null) {
   const source = survey || readSurvey();
   const result = await postJson("/api/preview", source);
+  const loaded = new Promise(resolve => preview.addEventListener("load", resolve, { once: true }));
   preview.srcdoc = result.html;
   previewEmpty.hidden = true;
+  await loaded;
   return result;
 }
 
 function reorderQuestionsFromPreview(orderedIds, movedQuestionId) {
+  if (previewReorderPending) return;
   const currentIds = builderQuestions.map(question => question.id);
   const uniqueIds = new Set(orderedIds);
   if (
@@ -617,11 +621,13 @@ function reorderQuestionsFromPreview(orderedIds, movedQuestionId) {
   syncBuilderToEditor();
   renderQuestionBuilder();
   focusPreviewQuestionAfterRefresh = movedQuestionId || null;
+  previewReorderPending = true;
 
   setStatus("تم حفظ ترتيب الأسئلة. جارٍ تحديث توزيع الصفحات والمعاينة...");
   refreshPreviewDocument()
     .then(() => setStatus("تم تحديث ترتيب الأسئلة والصفحات بنجاح.", "success"))
-    .catch(error => setStatus("تم حفظ الترتيب، لكن تعذّر تحديث المعاينة: " + error.message, "error"));
+    .catch(error => setStatus("تم حفظ الترتيب، لكن تعذّر تحديث المعاينة: " + error.message, "error"))
+    .finally(() => { previewReorderPending = false; });
 }
 
 function installPreviewQuestionSorting() {
@@ -701,7 +707,7 @@ function installPreviewQuestionSorting() {
   }
 
   function beginDrag(question, handle, event) {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || previewReorderPending) return;
     event.preventDefault();
     const state = {
       question,
