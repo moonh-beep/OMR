@@ -1,20 +1,28 @@
-"""معالجة الاستبيانات الممسوحة (يدعم الصفحة الواحدة أو الاستبيان الكامل) + واجهة المراجعة.
+"""معالجة الاستبيانات الممسوحة (يدعم الصفحة الواحدة أو الاستبيان الكامل).
   python omr.py process scan.jpg --fresh          # معالجة صورة لصفحة واحدة (يكتشف رقم الصفحة تلقائياً)
   python omr.py process scan.jpg --page 2 --fresh # معالجة صورة مع تحديد أنها الصفحة رقم 2
   python omr.py process scans/ --fresh            # معالجة مجلد صور أو ملف PDF
-  python omr.py review                            # يفتح واجهة المراجعة في المتصفح
+  python omr.py review                            # يشغّل واجهة التطبيق الموحد (app.py) للمراجعة
+
+ملاحظات التصميم:
+- الصور تُفترض بترتيب الأوراق (1،2،1،2…) ولا مقلوبة.
+- درجة كل خيار = كمية الحبر منسوبة لمساحة منطقته، ثم مضروبة في مساحة الخيار "المرجعي"
+  (وسيط مساحات الخيارات في القالب). لذلك تبقى المقاييس MIN_PIX وAMBIG بنفس معناها،
+  ولا يتحيّز القرار للمستطيلات الأكبر.
 """
-import argparse, json, shutil, sys, threading, webbrowser
+import argparse, json, shutil, sys
 from pathlib import Path
 import cv2, numpy as np
 
 HERE = Path(__file__).parent
 TEMPLATE = Path("template")
 WORK, OUT = Path("work"), Path("output")
-INK_THRESHOLD = 170   # بكسل أغمق من هذا (في أغمق قناة لونية) يُعدّ حبرًا
-MIN_PIX = 150         # أقل كمية حبر ليُعتبر الخيار محددًا
+INK_THRESHOLD = 170   # بكسل أغمق من هذا (بعد تسوية الإضاءة) يُعدّ حبرًا
+MIN_PIX = 150         # أقل كمية حبر (مكافئة لمساحة الخيار المرجعي) ليُعتبر الخيار محددًا
 AMBIG = 0.25          # الخيار الثاني بهذه النسبة من الأول أو أكثر = غموض
-PAD = 10              # توسيع منطقة كل خيار (بكسل) لاستيعاب الدائرة حول الكلمة
+PAD = 10              # توسيع منطقة كل خيار (بكسل)، ويُقصّ عند منتصف المسافة بين الخيارات المتجاورة
+MARKER_THRESHOLDS = (80, 110, 140, 55)  # عتبات تجربة المربعات السوداء (تُجرَّب بالترتيب)
+QUAD_TOL = 0.2        # تفاوت مسموح في أضلاع الشكل الرباعي ونسبة أبعاده
 
 
 def load_pages(src):
@@ -39,26 +47,61 @@ def load_pages(src):
     return [img]
 
 
-def find_markers(img):
-    """يرجع مراكز المربعات الأربعة (يسار-أعلى، يمين-أعلى، يمين-أسفل، يسار-أسفل) أو None."""
+def flatten(gray):
+    """يسوّي الإضاءة: يقسم الصورة على خلفيتها المقدّرة، فيصير الورق أبيض حتى مع ظل أو تدرّج."""
+    small = cv2.resize(gray, None, fx=0.25, fy=0.25, interpolation=cv2.INTER_AREA)
+    bg = cv2.dilate(small, np.ones((11, 11), np.uint8))   # يزيل الحبر والنص (أرفع من ~44 بكسل)
+    bg = cv2.GaussianBlur(bg, (0, 0), 6)
+    bg = cv2.resize(bg, (gray.shape[1], gray.shape[0]), interpolation=cv2.INTER_LINEAR)
+    out = gray.astype(np.float32) * 255.0 / np.maximum(bg.astype(np.float32), 1.0)
+    return np.clip(out, 0, 255).astype(np.uint8)
+
+
+def marker_ratio(L):
+    """نسبة عرض إلى ارتفاع الشكل الرباعي لمراكز المربعات في القالب."""
+    m = np.float32(L["pages"][0]["markers"])
+    top, bot = np.linalg.norm(m[1] - m[0]), np.linalg.norm(m[2] - m[3])
+    left, right = np.linalg.norm(m[3] - m[0]), np.linalg.norm(m[2] - m[1])
+    return float((top + bot) / (left + right))
+
+
+def quad_ok(pts, ratio=None):
+    """يتحقق أن النقاط الأربع تشكّل مستطيلاً معقولاً (أضلاع متقابلة متقاربة ونسبة أبعاد قريبة من القالب)."""
+    p = np.float32(pts)
+    top, bot = np.linalg.norm(p[1] - p[0]), np.linalg.norm(p[2] - p[3])
+    left, right = np.linalg.norm(p[3] - p[0]), np.linalg.norm(p[2] - p[1])
+    if min(top, bot, left, right) < 1:
+        return False
+    if abs(top - bot) > QUAD_TOL * max(top, bot) or abs(left - right) > QUAD_TOL * max(left, right):
+        return False
+    if ratio and abs(((top + bot) / (left + right)) / ratio - 1) > QUAD_TOL:
+        return False
+    return True
+
+
+def find_markers(img, ratio=None):
+    """يرجع مراكز المربعات الأربعة (يسار-أعلى، يمين-أعلى، يمين-أسفل، يسار-أسفل) أو None.
+    يجرّب عدة عتبات، ولا يقبل إلا شكلاً رباعياً صالحاً."""
     h, w = img.shape[:2]
     gray = cv2.GaussianBlur(img.min(axis=2), (5, 5), 0)
-    _, bw = cv2.threshold(gray, 80, 255, cv2.THRESH_BINARY_INV)  # أسود فقط (يتجاهل الخلفية الرمادية)
-    cnts, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    cands = []
-    for c in cnts:
-        x, y, cw, ch = cv2.boundingRect(c)
-        if not (0.02 * w < cw < 0.08 * w) or not (0.75 < cw / ch < 1.33):
-            continue
-        if cv2.contourArea(c) / (cw * ch) < 0.85:
-            continue
-        cands.append((x + cw / 2, y + ch / 2))
-    pts = []
-    for cx, cy in [(0, 0), (w, 0), (w, h), (0, h)]:
+    for thr in MARKER_THRESHOLDS:
+        _, bw = cv2.threshold(gray, thr, 255, cv2.THRESH_BINARY_INV)
+        cnts, _ = cv2.findContours(bw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cands = []
+        for c in cnts:
+            x, y, cw, ch = cv2.boundingRect(c)
+            if not (0.02 * w < cw < 0.08 * w) or not (0.75 < cw / ch < 1.33):
+                continue
+            if cv2.contourArea(c) / (cw * ch) < 0.85:
+                continue
+            cands.append((x + cw / 2, y + ch / 2))
         if not cands:
-            return None
-        pts.append(min(cands, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2))
-    return np.float32(pts) if len(set(pts)) == 4 else None
+            continue
+        pts = [min(cands, key=lambda q: (q[0] - cx) ** 2 + (q[1] - cy) ** 2)
+               for cx, cy in [(0, 0), (w, 0), (w, h), (0, h)]]
+        if len(set(pts)) == 4 and quad_ok(pts, ratio):
+            return np.float32(pts)
+    return None
 
 
 def detect_page_index(img, pts, L, ttext):
@@ -69,7 +112,7 @@ def detect_page_index(img, pts, L, ttext):
     for pi, pl in enumerate(L["pages"]):
         M = cv2.getPerspectiveTransform(pts, np.float32(pl["markers"]))
         warped = cv2.warpPerspective(img, M, (pl["w"], pl["h"]), borderValue=(255, 255, 255))
-        dark = warped.min(axis=2) < 150
+        dark = flatten(warped.min(axis=2)) < 150
         overlap = (dark & ttext[pi]).sum()
         score = overlap / max(1, ttext[pi].sum())
         if score > best_score:
@@ -88,6 +131,44 @@ def decide(scores):
     return {"sel": best, "status": "ok"}
 
 
+def option_region(rect, others):
+    """منطقة القياس لخيار: مستطيله + PAD، مع قصّ الهامش عند منتصف المسافة بين الخيار وجاره
+    كي لا يتسرّب حبر الخيار المجاور إلى درجته."""
+    x, y, w, h = rect
+    l = r = t = b = PAD
+    for ox, oy, ow, oh in others:
+        if min(x + w, ox + ow) > max(x, ox):          # يتداخلان أفقياً: جار فوق/تحت
+            if oy >= y + h:
+                b = min(b, max(0, (oy - (y + h)) // 2))
+            elif oy + oh <= y:
+                t = min(t, max(0, (y - (oy + oh)) // 2))
+        if min(y + h, oy + oh) > max(y, oy):          # يتداخلان رأسياً: جار يمين/يسار
+            if ox >= x + w:
+                r = min(r, max(0, (ox - (x + w)) // 2))
+            elif ox + ow <= x:
+                l = min(l, max(0, (x - (ox + ow)) // 2))
+    return x - l, y - t, x + w + r, y + h + b
+
+
+def reference_area(L):
+    """وسيط مساحات مستطيلات الخيارات في القالب."""
+    areas = [o["rect"][2] * o["rect"][3] for q in L["questions"] if q["type"] == "choice" for o in q["options"]]
+    return float(np.median(areas)) if areas else 1.0
+
+
+def score_options(ink, q, ref_area):
+    """درجة كل خيار = حبر منطقته منسوباً إلى مساحتها × مساحة الخيار المرجعي."""
+    rects = [o["rect"] for o in q["options"]]
+    H, W = ink.shape
+    out = []
+    for i, rc in enumerate(rects):
+        x0, y0, x1, y1 = option_region(rc, rects[:i] + rects[i + 1:])
+        x0, y0, x1, y1 = max(0, x0), max(0, y0), min(W, x1), min(H, y1)
+        part = ink[y0:y1, x0:x1]
+        out.append(int(round(int(part.sum()) * ref_area / max(1, part.size))))
+    return out
+
+
 def new_empty_sheet(sid, L):
     """ينشئ سجل استبيان جديد مع تهيئة الصفحات غير الممسوحة لتتوافق مع واجهة المراجعة."""
     npp = len(L["pages"])
@@ -99,15 +180,25 @@ def new_empty_sheet(sid, L):
         "id": sid,
         "pages": [f"blank_p{i+1}.jpg" for i in range(npp)],
         "scanned_pages": [],
+        "placed": [],      # الصفحات الموضوعة في هذه الورقة (الممسوحة والفاشلة) لتجميع الأوراق
         "q": q_init,
         "reviewed": False,
         "error": None,
     }
 
 
+def place_page(cur_sheet, sheets, pi, L):
+    """يُرجع الورقة التي تنتمي لها الصفحة pi، وينشئ ورقة جديدة عند تكرار الصفحة أو تراجع الترتيب."""
+    if cur_sheet is None or pi in cur_sheet["placed"] or (cur_sheet["placed"] and pi < cur_sheet["placed"][-1]):
+        cur_sheet = new_empty_sheet(f"{len(sheets)+1:04d}", L)
+        sheets.append(cur_sheet)
+    return cur_sheet
+
+
 def process(src, fresh, forced_page=None):
     L = json.load(open(TEMPLATE / "layout.json", encoding="utf-8"))
     npp = len(L["pages"])
+    ratio, ref_area = marker_ratio(L), reference_area(L)
     tdark, ttext = [], []
 
     if fresh and WORK.exists():
@@ -137,27 +228,29 @@ def process(src, fresh, forced_page=None):
 
     cur_sheet = None
     for idx, img in enumerate(pages):
-        pts = find_markers(img)
+        pts = find_markers(img, ratio)
         if pts is None:
-            pi = (forced_page - 1) if forced_page else (idx % npp)
-            cur_sheet = new_empty_sheet(f"{len(sheets)+1:04d}", L)
-            sheets.append(cur_sheet)
+            # الصفحة الفاشلة تبقى في ورقتها: نخمّن أنها الصفحة التالية في الترتيب، ولا نقطع تجميع الأوراق.
+            if forced_page:
+                pi = forced_page - 1
+            elif cur_sheet is not None and cur_sheet["placed"] and cur_sheet["placed"][-1] + 1 < npp:
+                pi = cur_sheet["placed"][-1] + 1
+            else:
+                pi = 0
+            cur_sheet = place_page(cur_sheet, sheets, pi, L)
+            cur_sheet["placed"].append(pi)
             pl = L["pages"][pi]
             name = f"s{cur_sheet['id']}_p{pi+1}.jpg"
-            cur_sheet["error"] = f"تعذّر إيجاد مربعات الزوايا في الصفحة {pi+1}"
+            msg = f"تعذّر إيجاد مربعات الزوايا في الصفحة {pi+1}"
+            cur_sheet["error"] = f"{cur_sheet['error']}؛ {msg}" if cur_sheet["error"] else msg
             raw = cv2.resize(img, (pl["w"], int(img.shape[0] * pl["w"] / img.shape[1])))
             cv2.imwrite(str(WORK / name), raw)
             cur_sheet["pages"][pi] = name
-            cur_sheet = None
             continue
 
         pi = (forced_page - 1) if forced_page else detect_page_index(img, pts, L, ttext)
-
-        # فتح سجل ورقة جديد إذا كانت هذه أول صورة أو إذا تكررت نفس الصفحة في دفعة جديدة
-        if cur_sheet is None or pi in cur_sheet["scanned_pages"] or (cur_sheet["scanned_pages"] and pi < cur_sheet["scanned_pages"][-1]):
-            cur_sheet = new_empty_sheet(f"{len(sheets)+1:04d}", L)
-            sheets.append(cur_sheet)
-
+        cur_sheet = place_page(cur_sheet, sheets, pi, L)
+        cur_sheet["placed"].append(pi)
         cur_sheet["scanned_pages"].append(pi)
         pl = L["pages"][pi]
         name = f"s{cur_sheet['id']}_p{pi+1}.jpg"
@@ -166,14 +259,12 @@ def process(src, fresh, forced_page=None):
         cv2.imwrite(str(WORK / name), warped, [cv2.IMWRITE_JPEG_QUALITY, 88])
         cur_sheet["pages"][pi] = name
 
-        ink = (cv2.GaussianBlur(warped.min(axis=2), (3, 3), 0) < INK_THRESHOLD) & (tdark[pi] == 0)
+        gray = cv2.GaussianBlur(warped.min(axis=2), (3, 3), 0)
+        ink = (flatten(gray) < INK_THRESHOLD) & (tdark[pi] == 0)
         for q in L["questions"]:
             if q["page"] != pi or q["type"] != "choice":
                 continue
-            scores = []
-            for o in q["options"]:
-                x, y, w, h = o["rect"]
-                scores.append(int(ink[max(0, y - PAD):y + h + PAD, max(0, x - PAD):x + w + PAD].sum()))
+            scores = score_options(ink, q, ref_area)
             cur_sheet["q"][q["id"]] = {**decide(scores), "scores": scores}
 
     json.dump(sheets, open(sf, "w", encoding="utf-8"), ensure_ascii=False)
@@ -184,57 +275,10 @@ def process(src, fresh, forced_page=None):
 
 
 def review(port):
-    from flask import Flask, jsonify, request, send_file, send_from_directory
-    app = Flask(__name__)
-    L = json.load(open(TEMPLATE / "layout.json", encoding="utf-8"))
-    sf = WORK / "sheets.json"
-    load = lambda: json.load(open(sf, encoding="utf-8"))
-
-    @app.get("/")
-    def index():
-        return send_file(HERE / "review.html")
-
-    @app.get("/api/layout")
-    def layout():
-        return jsonify(L)
-
-    @app.get("/api/sheets")
-    def sheets():
-        return jsonify([{"id": s["id"], "reviewed": s["reviewed"], "error": s["error"]} for s in load()])
-
-    @app.get("/api/sheet/<int:i>")
-    def sheet(i):
-        return jsonify(load()[i])
-
-    @app.get("/img/<path:name>")
-    def img(name):
-        return send_from_directory(WORK.resolve(), name)
-
-    @app.post("/api/sheet/<int:i>")
-    def save(i):
-        answers = request.json["answers"]
-        data = load()
-        exp = {}
-        for q in L["questions"]:
-            a = answers.get(q["id"], {})
-            if q["type"] == "choice":
-                exp[q["id"]] = q["options"][a["sel"]]["label"] if a.get("sel") is not None else None
-            else:
-                exp[q["id"]] = a.get("text", "")
-        data[i]["reviewed"], data[i]["saved"] = True, answers
-        OUT.mkdir(exist_ok=True)
-        s = data[i]
-        json.dump({"sheet_id": s["id"], "answers": exp}, open(OUT / f"sheet_{s['id']}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-        allr = []
-        for t in data:
-            if t["reviewed"]:
-                allr.append(json.load(open(OUT / f"sheet_{t['id']}.json", encoding="utf-8")))
-        json.dump(allr, open(OUT / "all.json", "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-        json.dump(data, open(sf, "w", encoding="utf-8"), ensure_ascii=False)
-        return jsonify(ok=True)
-
-    threading.Timer(1, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
-    app.run(port=port)
+    """واجهة المراجعة موجودة في app.py فقط (نسخة واحدة)؛ هذا الأمر يشغّلها للتوافق مع الأوامر القديمة."""
+    import app as web
+    sys.argv = ["app.py", str(port)]
+    web.main()
 
 
 if __name__ == "__main__":
