@@ -35,6 +35,42 @@
         <span class="format-chip">A4 · OMR</span>
       </div>
 
+      <section class="setting-card title-settings" aria-labelledby="title-settings-title">
+        <div class="setting-card-heading">
+          <span class="setting-icon" aria-hidden="true">T</span>
+          <div>
+            <h4 id="title-settings-title">عنوان الاستبيان</h4>
+            <p>النص والظهور والمحاذاة</p>
+          </div>
+        </div>
+        <div class="setting-control">
+          <label class="setting-field-label" for="survey-title-ar">العنوان باللغة العربية</label>
+          <input id="survey-title-ar" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="عنوان الاستبيان">
+        </div>
+        <div class="setting-control">
+          <label class="setting-field-label" for="survey-title-en">العنوان باللغة الإنجليزية</label>
+          <input id="survey-title-en" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="Questionnaire title">
+        </div>
+        <div class="setting-control">
+          <label class="setting-field-label" for="survey-title-alignment">محاذاة العنوان</label>
+          <select id="survey-title-alignment" class="setting-select">
+            <option value="center">توسيط</option>
+            <option value="right">محاذاة إلى اليمين</option>
+            <option value="left">محاذاة إلى اليسار</option>
+          </select>
+        </div>
+        <div class="setting-toggles">
+          <label class="setting-toggle">
+            <input id="survey-title-visible-toggle" type="checkbox" checked>
+            <span>إظهار عنوان الاستبيان</span>
+          </label>
+          <label class="setting-toggle">
+            <input id="survey-title-bold-toggle" type="checkbox" checked>
+            <span>عنوان عريض (Bold)</span>
+          </label>
+        </div>
+      </section>
+
       <section class="question-builder" aria-labelledby="question-builder-title">
         <div class="question-builder-heading">
           <div>
@@ -90,41 +126,7 @@
             </div>
           </section>
 
-          <section class="setting-card title-settings" aria-labelledby="title-settings-title">
-            <div class="setting-card-heading">
-              <span class="setting-icon" aria-hidden="true">T</span>
-              <div>
-                <h4 id="title-settings-title">عنوان الاستبيان</h4>
-                <p>النص والظهور والمحاذاة</p>
-              </div>
-            </div>
-            <div class="setting-control">
-              <label class="setting-field-label" for="survey-title-ar">العنوان باللغة العربية</label>
-              <input id="survey-title-ar" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="عنوان الاستبيان">
-            </div>
-            <div class="setting-control">
-              <label class="setting-field-label" for="survey-title-en">العنوان باللغة الإنجليزية</label>
-              <input id="survey-title-en" class="setting-text" dir="auto" type="text" maxlength="180" autocomplete="off" placeholder="Questionnaire title">
-            </div>
-            <div class="setting-control">
-              <label class="setting-field-label" for="survey-title-alignment">محاذاة العنوان</label>
-              <select id="survey-title-alignment" class="setting-select">
-                <option value="center">توسيط</option>
-                <option value="right">محاذاة إلى اليمين</option>
-                <option value="left">محاذاة إلى اليسار</option>
-              </select>
-            </div>
-            <div class="setting-toggles">
-              <label class="setting-toggle">
-                <input id="survey-title-visible-toggle" type="checkbox" checked>
-                <span>إظهار عنوان الاستبيان</span>
-              </label>
-              <label class="setting-toggle">
-                <input id="survey-title-bold-toggle" type="checkbox" checked>
-                <span>عنوان عريض (Bold)</span>
-              </label>
-            </div>
-          </section>
+
 
           <section class="setting-card" aria-labelledby="heading-sizes-title">
             <div class="setting-card-heading">
