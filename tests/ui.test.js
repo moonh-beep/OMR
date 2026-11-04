@@ -78,7 +78,7 @@ test("main application provides one coherent four-stage workspace", () => {
     "stat-total", "stat-reviewed", "stat-pending",
     "export-csv", "export-json", "reset-dialog", "fresh-dialog"
   ]) {
-    const matches = appHtml.match(new RegExp("id=[\\"']" + id + "[\\"']", "g")) ?? [];
+    const matches = appHtml.split('id="' + id + '"').length - 1;
     assert.equal(matches.length, 1, 'Expected one main-app element with id="' + id + '"');
   }
   assert.equal((appHtml.match(/data-t="(tpl|up|review|res)"/g) ?? []).length, 8);
