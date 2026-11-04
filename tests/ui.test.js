@@ -5,6 +5,7 @@ import { Script } from "node:vm";
 
 const html = readFileSync(new URL("../web/index.html", import.meta.url), "utf8");
 const css = readFileSync(new URL("../web/app.css", import.meta.url), "utf8");
+const editorJs = readFileSync(new URL("../web/app.js", import.meta.url), "utf8");
 
 const requiredIds = [
   "survey-json",
@@ -34,6 +35,10 @@ const requiredIds = [
   "section-title-underline-toggle",
   "survey-title-divider-toggle",
   "section-title-divider-toggle",
+  "question-builder-title",
+  "question-count",
+  "question-list",
+  "add-question",
 ];
 
 test("redesigned interface preserves every JavaScript control ID exactly once", () => {
@@ -117,4 +122,30 @@ test("main application and review inline scripts are syntactically valid JavaScr
   assert.ok(reviewScript, "Missing review application script");
   assert.doesNotThrow(() => new Script(appScript, { filename: "web/app.html" }));
   assert.doesNotThrow(() => new Script(reviewScript, { filename: "review.html" }));
+});
+
+
+test("visual question builder supports bilingual CRUD, options, and reordering", () => {
+  assert.match(editorJs, /function setQuestionBuilderFromSurvey/);
+  assert.match(editorJs, /function syncBuilderToEditor/);
+  assert.match(editorJs, /function moveQuestion/);
+  assert.match(editorJs, /function duplicateQuestion/);
+  assert.match(editorJs, /function removeQuestion/);
+  assert.match(editorJs, /إضافة خيار/);
+  assert.match(editorJs, /text_en/);
+  assert.match(editorJs, /text_ar/);
+  assert.match(appHtml, /id="question-builder-title"/);
+  assert.match(appHtml, /id="question-list"/);
+});
+
+test("visual question builder has keyboard-friendly controls and responsive styles", () => {
+  assert.match(appHtml, /aria-live="polite"/);
+  assert.match(css, /\.question-item-header/);
+  assert.match(css, /\.option-editor-row/);
+  assert.match(css, /@media \(max-width: 620px\)/);
+  assert.match(editorJs, /setAttribute\("aria-label", label\)/);
+});
+
+test("editor module script parses without syntax errors", () => {
+  assert.doesNotThrow(() => new Script(editorJs, { filename: "web/app.js" }));
 });
