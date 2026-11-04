@@ -80,7 +80,7 @@ test("main application provides one coherent four-stage workspace", () => {
     "export-csv", "export-json", "reset-dialog", "fresh-dialog"
   ]) {
     const matches = appHtml.split('id="' + id + '"').length - 1;
-    assert.equal(matches.length, 1, 'Expected one main-app element with id="' + id + '"');
+    assert.equal(matches, 1, 'Expected one main-app element with id="' + id + '"');
   }
   assert.equal((appHtml.match(/data-t="(tpl|up|review|res)"/g) ?? []).length, 8);
   assert.match(appHtml, /<aside class="sidebar"/);
