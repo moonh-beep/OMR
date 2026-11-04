@@ -149,3 +149,19 @@ test("visual question builder has keyboard-friendly controls and responsive styl
 test("editor module script parses without syntax errors", () => {
   assert.doesNotThrow(() => new Script(editorJs, { filename: "web/app.js" }));
 });
+
+
+test("editor order follows survey identity, question content, then print formatting", () => {
+  const titleIndex = html.indexOf('class="setting-card title-settings"');
+  const questionIndex = html.indexOf('class="question-builder"');
+  const layoutIndex = html.indexOf('class="layout-controls"');
+  assert.ok(titleIndex >= 0 && titleIndex < questionIndex);
+  assert.ok(questionIndex < layoutIndex);
+});
+
+test("builder preserves section layout metadata and exports editable source JSON", () => {
+  assert.match(editorJs, /sectionSource:/);
+  assert.match(editorJs, /item\.section =/);
+  assert.match(editorJs, /__survey_json__/);
+  assert.match(editorJs, /new Blob\(\[JSON\.stringify\(survey, null, 2\)\]/);
+});
