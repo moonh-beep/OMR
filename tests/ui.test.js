@@ -134,8 +134,8 @@ test("visual question builder supports bilingual CRUD, options, and reordering",
   assert.match(editorJs, /إضافة خيار/);
   assert.match(editorJs, /text_en/);
   assert.match(editorJs, /text_ar/);
-  assert.match(appHtml, /id="question-builder-title"/);
-  assert.match(appHtml, /id="question-list"/);
+  assert.match(html, /id="question-builder-title"/);
+  assert.match(html, /id="question-list"/);
 });
 
 test("visual question builder has keyboard-friendly controls and responsive styles", () => {
