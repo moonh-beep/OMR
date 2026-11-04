@@ -462,3 +462,70 @@ h1 { margin: 0; font-size: clamp(20px, 2vw, 27px); line-height: 1.4; letter-spac
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+
+/* Embedded workspace mode: the main application owns the global header and navigation. */
+html.embedded,
+html.embedded body {
+  min-width: 0;
+  background: transparent;
+}
+html.embedded .topbar {
+  display: none;
+}
+html.embedded .workspace {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(320px, .88fr) minmax(0, 1.12fr);
+  gap: 13px;
+  margin: 0;
+  padding: 2px;
+  align-items: start;
+}
+html.embedded .editor-panel,
+html.embedded .preview-panel {
+  border-radius: 13px;
+  box-shadow: 0 4px 18px rgba(23, 35, 48, .035);
+}
+html.embedded .editor-panel {
+  padding: 15px;
+}
+html.embedded .preview-panel {
+  position: sticky;
+  top: 8px;
+  min-height: 640px;
+}
+html.embedded .preview-frame-wrap {
+  height: calc(100vh - 205px);
+  min-height: 590px;
+}
+html.embedded .panel-heading h2 {
+  font-size: 16px;
+}
+html.embedded .layout-controls {
+  margin-top: 0;
+}
+@media (max-width: 1020px) {
+  html.embedded .workspace {
+    grid-template-columns: 1fr;
+  }
+  html.embedded .preview-panel {
+    position: static;
+  }
+  html.embedded .preview-frame-wrap {
+    height: 700px;
+  }
+}
+@media (max-width: 620px) {
+  html.embedded .workspace {
+    padding: 0;
+    gap: 10px;
+  }
+  html.embedded .editor-panel {
+    padding: 12px;
+  }
+  html.embedded .preview-frame-wrap {
+    height: 560px;
+    min-height: 420px;
+  }
+}
