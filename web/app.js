@@ -698,7 +698,7 @@ function installPreviewQuestionSorting() {
       const rect = anchor.getBoundingClientRect();
       const insertAfter = event.clientY > rect.top + rect.height / 2;
       const reference = insertAfter ? anchor.nextSibling : anchor;
-      if (reference !== state.marker && state.marker.nextSibling !== reference) {
+      if (reference !== state.marker && (state.marker.parentNode !== targetBody || state.marker.nextSibling !== reference)) {
         targetBody.insertBefore(state.marker, reference);
       }
     } else if (state.marker.parentNode !== targetBody || state.marker !== targetBody.lastElementChild) {
