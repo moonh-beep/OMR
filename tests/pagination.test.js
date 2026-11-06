@@ -92,6 +92,28 @@ test("keeps manually positioned questions on their selected page and outside tex
   assert.equal(positionedQuestion.style.width, "80mm");
 });
 
+test("keeps a section heading attached to its manually positioned first question", () => {
+  const heading = fakeElement(["section-title"], 30);
+  const question = fakeElement(
+    ["q", "manual-position"],
+    40,
+    {
+      id: "section-first",
+      positionPage: "0",
+      positionXMm: "4",
+      positionYMm: "8",
+      positionWidthMm: "80",
+    },
+  );
+  const { result, pages } = runPagination([heading, question]);
+  assert.equal(result.pageCount, 1);
+  assert.ok(pages[0].children.includes(heading));
+  assert.ok(pages[0].children.includes(question));
+  assert.equal(heading.style.position, "absolute");
+  assert.equal(heading.style.left, "4mm");
+  assert.ok(Number.parseFloat(heading.style.top) < Number.parseFloat(question.style.top));
+});
+
 test("clamps manually positioned questions to the physical A4 page, not the text margins", () => {
   const positionedQuestion = fakeElement(
     ["q", "manual-position"],
