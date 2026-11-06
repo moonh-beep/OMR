@@ -10,9 +10,9 @@
   --soft-rule: #777;
   --page-width: 210mm;
   --page-height: 297mm;
-  --body-top: 24mm;
-  --body-bottom: 23mm;
-  --body-side: 20mm;
+  --page-margin: 20mm;
+  --question-font-size: 13pt;
+  --option-font-size: 12pt;
   --column-gap: 8mm;
 }
 
@@ -92,10 +92,10 @@ body.survey-document {
 .body {
   position: absolute;
   z-index: 1;
-  top: var(--body-top);
-  left: var(--body-side);
-  right: var(--body-side);
-  bottom: var(--body-bottom);
+  top: calc(var(--page-margin, 20mm) + 4mm);
+  left: var(--page-margin, 20mm);
+  right: var(--page-margin, 20mm);
+  bottom: calc(var(--page-margin, 20mm) + 3mm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -105,7 +105,7 @@ body.survey-document {
 #measure {
   position: absolute;
   visibility: hidden;
-  width: 170mm;
+  width: calc(210mm - var(--page-margin) - var(--page-margin));
   top: 0;
   left: 0;
   display: flex;
@@ -120,17 +120,20 @@ body.survey-document {
   column-gap: var(--column-gap);
   direction: ltr;
   align-items: center;
-  margin: 0 0 8mm;
-  padding: 0 0 3mm;
+  margin: 0 0 5mm;
+  padding: 0 0 2mm;
   border-bottom: 0.45mm solid #222;
+}
+.hd-single-title {
+  grid-template-columns: minmax(0, 1fr);
 }
 .hd-en,
 .hd-ar {
   min-width: 0;
-  font-size: 21pt;
-  font-weight: 700;
-  line-height: 1.28;
-  text-align: center;
+  font-size: var(--survey-title-font-size, 12pt);
+  font-weight: var(--survey-title-font-weight, 700);
+  line-height: 1.2;
+  text-align: var(--survey-title-text-align, center);
 }
 .hd-en {
   direction: ltr;
@@ -159,9 +162,9 @@ body.survey-document {
 .section-title-en,
 .section-title-ar {
   min-width: 0;
-  font-size: 15pt;
+  font-size: var(--section-title-font-size, 12pt);
   font-weight: 700;
-  line-height: 1.45;
+  line-height: 1.35;
   text-decoration: underline;
   text-underline-offset: 1.2mm;
 }
@@ -198,6 +201,14 @@ body.survey-document {
   break-inside: avoid;
   page-break-inside: avoid;
 }
+
+/* Explicitly positioned questions are placed relative to the physical A4 page,
+   not constrained by the normal text-area margins. */
+.q.manual-position {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+}
 .qt {
   width: 100%;
   display: grid;
@@ -205,8 +216,8 @@ body.survey-document {
   column-gap: var(--column-gap);
   direction: ltr;
   align-items: start;
-  font-size: 13pt;
-  font-weight: 400;
+  font-size: var(--question-font-size, 13pt);
+  font-weight: var(--body-font-weight, 400);
   line-height: 1.42;
   margin-bottom: 1.5mm;
 }
@@ -255,7 +266,8 @@ body.survey-document {
   outline: 0;
   background: transparent;
   color: #111;
-  font-size: 12pt;
+  font-size: var(--option-font-size, 12pt);
+  font-weight: var(--body-font-weight, 400);
   line-height: 1.5;
   white-space: normal;
 }
@@ -399,4 +411,26 @@ body.survey-document {
     box-shadow: none;
     margin: 0;
   }
+}
+
+
+/* Optional title formatting controlled from the template settings panel. */
+.hd-title-underline .hd-en,
+.hd-title-underline .hd-ar {
+  text-decoration: underline;
+  text-underline-offset: 1mm;
+}
+.section-title-no-underline .section-title-en,
+.section-title-no-underline .section-title-ar {
+  text-decoration: none;
+}
+
+/* Divider switches live on the document body, so target the actual title blocks. */
+.survey-document.hd-no-divider .hd {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.survey-document.section-title-no-divider .section-title {
+  border-bottom: 0;
+  padding-bottom: 0;
 }

@@ -1,9 +1,13 @@
+# Node and Python tooling
 node_modules/
+__pycache__/
+*.py[cod]
 *.log
 .DS_Store
 
-# Custom ignores
+# Generated questionnaire and scan data
+template/
 work/
-templates/
-tests/
 output/
+uploads/
+survey.current.json

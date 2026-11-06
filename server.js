@@ -1,11 +1,14 @@
 import http from "node:http";
-import { readFile, stat } from "node:fs/promises";
+import { readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { generateFiles, renderPreview } from "./src/export.js";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const WEB = path.join(ROOT, "web");
 const OUTPUT = path.join(ROOT, "template");
+const LATEST_SURVEY = path.join(ROOT, "survey.current.json");
+const SAMPLE_SURVEY = path.join(ROOT, "survey.json");
 const PORT = Number(process.env.PORT || 4173);
 
 const MIME = {
@@ -44,17 +47,35 @@ async function staticFile(res, filePath) {
   }
 }
 
+async function latestSurvey() {
+  for (const candidate of [LATEST_SURVEY, SAMPLE_SURVEY]) {
+    try {
+      return JSON.parse(await readFile(candidate, "utf8"));
+    } catch (error) {
+      if (error.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
+    }
+  }
+  throw new Error("لم يتم العثور على ملف استبيان تجريبي.");
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+
+    if (req.method === "GET" && url.pathname === "/api/survey") {
+      return send(res, 200, "application/json; charset=utf-8", JSON.stringify(await latestSurvey()));
+    }
+
     if (req.method === "POST" && url.pathname === "/api/preview") {
       const survey = await readJson(req);
       const html = await renderPreview(survey);
       return send(res, 200, "application/json; charset=utf-8", JSON.stringify({ html }));
     }
+
     if (req.method === "POST" && url.pathname === "/api/generate") {
       const survey = await readJson(req);
       const result = await generateFiles(survey, OUTPUT);
+      await writeFile(LATEST_SURVEY, JSON.stringify(survey, null, 2), "utf8");
       return send(res, 200, "application/json; charset=utf-8", JSON.stringify({
         pageCount: result.pageCount,
         questionCount: result.questionCount,
@@ -62,9 +83,11 @@ const server = http.createServer(async (req, res) => {
         outputUrl: "/template/",
       }));
     }
+
     if (req.method !== "GET" && req.method !== "HEAD") {
       return send(res, 405, "text/plain; charset=utf-8", "Method not allowed");
     }
+
     if (url.pathname.startsWith("/template/")) {
       const relative = decodeURIComponent(url.pathname.slice("/template/".length));
       const target = path.resolve(OUTPUT, relative || "survey.pdf");
@@ -73,9 +96,21 @@ const server = http.createServer(async (req, res) => {
       }
       return await staticFile(res, target);
     }
-    const relative = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
-    const target = path.resolve(ROOT, relative);
-    if (!target.startsWith(ROOT + path.sep)) return send(res, 403, "text/plain; charset=utf-8", "Forbidden");
+
+    let target;
+    if (url.pathname === "/") {
+      target = path.join(WEB, "index.html");
+    } else if (url.pathname === "/app.js" || url.pathname === "/app.css") {
+      target = path.join(WEB, path.basename(url.pathname));
+    } else if (url.pathname === "/survey.json") {
+      target = SAMPLE_SURVEY;
+    } else {
+      const relative = decodeURIComponent(url.pathname.slice(1));
+      target = path.resolve(ROOT, relative);
+      if (!target.startsWith(ROOT + path.sep)) {
+        return send(res, 403, "text/plain; charset=utf-8", "Forbidden");
+      }
+    }
     return await staticFile(res, target);
   } catch (error) {
     return send(res, 400, "application/json; charset=utf-8", JSON.stringify({ error: error.message }));

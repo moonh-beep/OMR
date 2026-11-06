@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const CSS_PATH = path.resolve(HERE, "../styles.css");
+const CSS_PATH = path.resolve(HERE, "styles.css");
 
 // ==========================================
 // HTML escaping
@@ -70,9 +70,27 @@ function isStackLayout(section) {
 // Question generation
 // ==========================================
 
+function manualPrintPosition(question) {
+  const position = question.print_position;
+  if (!position || typeof position !== "object" || Array.isArray(position)) return null;
+  const page = Number(position.page);
+  const x = Number(position.x_mm);
+  const y = Number(position.y_mm);
+  const width = position.width_mm == null ? null : Number(position.width_mm);
+  if (!Number.isInteger(page) || page < 0 || page > 99) return null;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  if (width !== null && (!Number.isFinite(width) || width <= 0)) return null;
+  return { page, x, y, width };
+}
+
 function questionHtml(number, question) {
   const id = escapeHtml(question.id);
   const type = String(question.type || "choice");
+  const position = manualPrintPosition(question);
+  const positionAttributes = position
+    ? ` data-position-page="${position.page}" data-position-x-mm="${position.x}" data-position-y-mm="${position.y}"` +
+      (position.width === null ? "" : ` data-position-width-mm="${position.width}"`)
+    : "";
 
   const [en, ar] = textPair(question.text, question.text_en, question.text_ar);
 
@@ -158,7 +176,7 @@ function questionHtml(number, question) {
   }
 
   return (
-    `<article class="q" data-id="${id}" data-type="${escapeHtml(type)}">` +
+    `<article class="q${position ? " manual-position" : ""}" data-id="${id}" data-type="${escapeHtml(type)}"${positionAttributes}>` +
     heading +
     content +
     `</article>`
@@ -193,16 +211,39 @@ export async function buildDocument(survey) {
   validateSurvey(survey);
 
   const [titleEn, titleAr] = resolveTitle(survey);
+  const settings = survey.layout_settings && typeof survey.layout_settings === "object"
+    ? survey.layout_settings
+    : {};
+  const questionFontPt = Math.min(18, Math.max(9, Number(settings.questionFontPt) || 13));
+  const optionFontPt = Math.max(8, questionFontPt - 1);
+  const pageMarginMm = Math.min(30, Math.max(18, Number(settings.pageMarginMm) || 20));
+  const surveyTitleFontPt = Math.min(22, Math.max(9, Number(settings.surveyTitleFontPt) || 12));
+  const sectionTitleFontPt = Math.min(22, Math.max(9, Number(settings.sectionTitleFontPt) || 12));
+  const showSurveyTitle = settings.showSurveyTitle !== false && Boolean(titleEn.trim() || titleAr.trim());
+  const surveyTitleBold = settings.surveyTitleBold !== false;
+  const surveyTitleAlignment = ["left", "center", "right"].includes(settings.surveyTitleAlignment)
+    ? settings.surveyTitleAlignment
+    : "center";
 
-  const title =
-    `<header class="hd">` +
-    `<div class="hd-en en" dir="ltr">${escapeHtml(titleEn)}</div>` +
-    `<div class="hd-ar ar" dir="rtl">${escapeHtml(titleAr)}</div>` +
-    `</header>`;
+  const documentClasses = [
+    "survey-document",
+    settings.surveyTitleUnderline === true ? "hd-title-underline" : "",
+    settings.sectionTitleUnderline === false ? "section-title-no-underline" : "",
+    settings.surveyTitleDivider === false ? "hd-no-divider" : "",
+    settings.sectionTitleDivider === false ? "section-title-no-divider" : "",
+    settings.bodyBold === true ? "body-bold" : "",
+  ].filter(Boolean).join(" ");
+
+  const title = showSurveyTitle
+    ? `<header class="hd${!titleEn.trim() || !titleAr.trim() ? " hd-single-title" : ""}">` +
+      (titleEn.trim() ? `<div class="hd-en en" dir="ltr">${escapeHtml(titleEn)}</div>` : "") +
+      (titleAr.trim() ? `<div class="hd-ar ar" dir="rtl">${escapeHtml(titleAr)}</div>` : "") +
+      `</header>`
+    : "";
 
   const entries = normalizeQuestions(survey);
 
-  const blocks = [title];
+  const blocks = title ? [title] : [];
 
   let previousSectionKey = Symbol("first");
 
@@ -240,7 +281,7 @@ ${css}
   </style>
 </head>
 
-<body class="survey-document">
+<body class="${documentClasses}" style="--question-font-size:${questionFontPt}pt; --option-font-size:${optionFontPt}pt; --page-margin:${pageMarginMm}mm; --survey-title-font-size:${surveyTitleFontPt}pt; --survey-title-font-weight:${surveyTitleBold ? 700 : 400}; --survey-title-text-align:${surveyTitleAlignment}; --section-title-font-size:${sectionTitleFontPt}pt; --body-font-weight:${settings.bodyBold === true ? 700 : 400};">
 
   <main id="measure" aria-label="Questionnaire measurement area">
     ${blocks.join("\n")}

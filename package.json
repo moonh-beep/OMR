@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "generate": "node cli.js",
-    "test": "node tests/run-tests.js"
+    "test": "node --test",
+    "test:python": "python -m unittest discover -s tests -p \"test_*.py\" -v"
   },
   "engines": {
     "node": ">=22"

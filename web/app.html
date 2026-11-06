@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f8">
+  <meta name="description" content="إدارة تصميم الاستبيانات الورقية ومعالجة النماذج ومراجعة النتائج.">
+  <title>نظام الاستبيانات الورقية</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink:#18252f; --muted:#71808b; --line:#e3e9ed; --surface:#fff;
+      --canvas:#f4f6f7; --primary:#28645f; --primary-dark:#1e504c;
+      --primary-soft:#e9f2f1; --success:#237650; --warning:#9b6518;
+      --danger:#b33f47; --sidebar:#172b35; --sidebar-muted:#a9b9c0;
+      --shadow:0 12px 34px rgba(20,39,50,.055);
+      --radius:16px;
+    }
+    *{box-sizing:border-box}
+    html{min-width:320px;background:var(--canvas);scroll-behavior:smooth}
+    body{margin:0;color:var(--ink);font-family:"Noto Sans Arabic","Segoe UI",Tahoma,sans-serif;text-rendering:optimizeLegibility}
+    button,input,select{font:inherit}
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid rgba(57,139,130,.35);outline-offset:2px}
+    .app-shell{min-height:100vh;display:grid;grid-template-columns:252px minmax(0,1fr);direction:rtl}
+    .sidebar{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:24px;padding:22px 15px;background:var(--sidebar);color:#fff}
+    .brand{display:flex;align-items:center;gap:11px;padding:2px 7px 18px;border-bottom:1px solid rgba(255,255,255,.12)}
+    .brand-mark{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:#dceeea;color:#1f625c;font:800 21px/1 Arial,sans-serif}
+    .brand-copy{min-width:0}
+    .brand-copy strong{display:block;font-size:13px;line-height:1.6}
+    .brand-copy small{display:block;margin-top:2px;color:#9fb2ba;font:700 8px/1.4 Arial,sans-serif;letter-spacing:.13em}
+    .nav-label{margin:0 10px 7px;color:#8197a0;font-size:9px;font-weight:800;letter-spacing:.08em}
+    .nav-list{display:grid;gap:6px}
+    .nav-item{width:100%;display:flex;align-items:center;gap:11px;min-height:48px;padding:8px 11px;border:1px solid transparent;border-radius:11px;background:transparent;color:var(--sidebar-muted);text-align:right;cursor:pointer;transition:background .15s ease,color .15s ease,border-color .15s ease}
+    .nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+    .nav-item.active{background:rgba(223,241,237,.12);border-color:rgba(223,241,237,.13);color:#fff}
+    .nav-icon{display:grid;place-items:center;width:29px;height:29px;flex:0 0 29px;border-radius:9px;background:rgba(255,255,255,.08);font-size:14px}
+    .nav-item.active .nav-icon{background:#dceeea;color:#1f625c}
+    .nav-copy{min-width:0;flex:1}
+    .nav-copy strong{display:block;font-size:11px;font-weight:750}
+    .nav-copy small{display:block;margin-top:2px;color:#8fa4ad;font-size:9px}
+    .nav-item.active .nav-copy small{color:#c4d8d7}
+    .nav-count{min-width:25px;padding:3px 6px;border-radius:20px;background:rgba(255,255,255,.1);color:#e8f1f2;font:700 10px Arial,sans-serif;text-align:center}
+    .sidebar-spacer{flex:1}
+    .sidebar-help{padding:13px;border:1px solid rgba(255,255,255,.11);border-radius:12px;background:rgba(255,255,255,.045)}
+    .sidebar-help strong{display:block;font-size:10px}
+    .sidebar-help p{margin:5px 0 0;color:#a8bac1;font-size:9px;line-height:1.8}
+    .sidebar-footer{display:flex;align-items:center;justify-content:space-between;padding:0 7px;color:#8398a1;font:9px Arial,sans-serif}
+    .app-content{min-width:0;min-height:100vh;display:flex;flex-direction:column}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:83px;padding:14px clamp(18px,3vw,42px);border-bottom:1px solid var(--line);background:rgba(255,255,255,.94);backdrop-filter:blur(14px)}
+    .topbar-heading{min-width:0}
+    .eyebrow{margin:0 0 3px;color:var(--primary);font:800 9px/1.4 Arial,sans-serif;letter-spacing:.1em}
+    .topbar h1{margin:0;font-size:19px;line-height:1.4;letter-spacing:-.02em}
+    .topbar p{margin:3px 0 0;color:var(--muted);font-size:10px;line-height:1.6}
+    .topbar-meta{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .status-pill{display:inline-flex;align-items:center;gap:7px;min-height:31px;padding:6px 10px;border:1px solid #e0e9e5;border-radius:20px;background:#f4f8f5;color:#47745d;font-size:9px;font-weight:750}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:#58a37b}
+    .status-pill[data-state="empty"]{border-color:#ece5d9;background:#faf7f1;color:#8d713e}
+    .status-pill[data-state="empty"] .status-dot{background:#c69b4b}
+    .local-badge{padding:6px 9px;border:1px solid var(--line);border-radius:20px;color:#7d8a94;font-size:9px}
+    .main-content{width:100%;max-width:1760px;margin:0 auto;padding:24px clamp(14px,2.6vw,38px) 40px}
+    .workflow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 20px}
+    .workflow-step{display:flex;align-items:center;gap:9px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:#71808b;text-align:right;cursor:pointer}
+    .workflow-step:hover{border-color:#c9d9d6;background:#fbfdfc}
+    .workflow-step.active{border-color:#a9cbc5;background:var(--primary-soft);color:#245d58}
+    .step-number{display:grid;place-items:center;width:25px;height:25px;flex:0 0 25px;border-radius:50%;background:#f0f3f4;color:#7d8b94;font:700 10px Arial,sans-serif}
+    .workflow-step.active .step-number{background:var(--primary);color:#fff}
+    .step-copy{min-width:0}
+    .step-copy strong{display:block;font-size:10px;white-space:nowrap}
+    .step-copy small{display:block;margin-top:2px;color:#8b979f;font-size:8px;white-space:nowrap}
+    .workspace-view{display:none;min-width:0;animation:fade-in .18s ease}
+    .workspace-view.active{display:block}
+    @keyframes fade-in{from{opacity:.55;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+    .view-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin-bottom:15px}
+    .view-heading h2{margin:0;font-size:17px;letter-spacing:-.02em}
+    .view-heading p{margin:4px 0 0;color:var(--muted);font-size:10px;line-height:1.7}
+    .subtle-tag{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid var(--line);border-radius:20px;background:#fff;color:#72818b;font-size:9px;white-space:nowrap}
+    .card{min-width:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow)}
+    .design-shell{overflow:hidden;padding:10px}
+    #generator-frame{display:block;width:100%;height:calc(100vh - 215px);min-height:760px;border:0;border-radius:11px;background:#f4f6f7}
+    .upload-overview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px}
+    .overview-card{display:flex;align-items:center;gap:11px;min-width:0;padding:14px;border:1px solid var(--line);border-radius:13px;background:#fff}
+    .overview-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 36px;border-radius:11px;background:#edf4f2;color:var(--primary);font-size:15px}
+    .overview-copy{min-width:0}
+    .overview-copy small{display:block;color:#82909a;font-size:9px}
+    .overview-copy strong{display:block;margin-top:3px;color:#283842;font-size:14px;font-weight:800}
+    .overview-copy em{display:block;margin-top:2px;color:#8a969e;font-size:8px;font-style:normal}
+    .upload-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(240px,.75fr);gap:14px;align-items:start}
+    .upload-main{padding:18px}
+    .card-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+    .card-heading h3{margin:0;font-size:13px}
+    .card-heading p{margin:3px 0 0;color:var(--muted);font-size:9px;line-height:1.6}
+    .dropzone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:205px;padding:22px;border:1.5px dashed #b9ccc9;border-radius:13px;background:#f8fbfa;text-align:center;transition:border-color .15s ease,background .15s ease}
+    .dropzone.over{border-color:var(--primary);background:#edf7f5}
+    .drop-icon{display:grid;place-items:center;width:51px;height:51px;border-radius:15px;background:#e5f0ee;color:#2a6d66;font-size:23px}
+    .dropzone strong{color:#2d4149;font-size:12px}
+    .dropzone p{margin:0;color:#7c8c94;font-size:9px;line-height:1.7}
+    .dropzone .button{margin-top:3px}
+    .supported-formats{color:#9aa5ab!important;font:9px Arial,sans-serif}
+    .button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 13px;border:1px solid #dbe3e7;border-radius:9px;background:#fff;color:#42535d;font-size:10px;font-weight:750;text-decoration:none;cursor:pointer;transition:background .15s ease,border-color .15s ease,transform .15s ease}
+    .button:hover{border-color:#b9ccc9;background:#f8fbfa}
+    .button:active{transform:translateY(1px)}
+    .button:disabled,.button.disabled{opacity:.42;cursor:not-allowed;transform:none;pointer-events:none}
+    .button-primary{border-color:var(--primary);background:var(--primary);color:#fff}
+    .button-primary:hover{border-color:var(--primary-dark);background:var(--primary-dark)}
+    .button-danger{border-color:#f0d9db;background:#fff8f8;color:var(--danger)}
+    .button-quiet{border-color:transparent;background:transparent;color:#73818a}
+    .button-quiet:hover{background:#f3f6f7}
+    .queue-section{margin-top:17px}
+    .queue-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+    .queue-heading strong{font-size:10px}
+    .queue-count{padding:3px 7px;border-radius:20px;background:#edf2f3;color:#71808a;font:700 9px Arial,sans-serif}
+    .file-list{display:grid;gap:6px;margin:0;padding:0;list-style:none}
+    .file-row{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 10px;border:1px solid #e7ecee;border-radius:9px;background:#fff}
+    .file-type{display:grid;place-items:center;width:30px;height:30px;flex:0 0 30px;border-radius:8px;background:#eff4f3;color:#426e69;font:800 8px Arial,sans-serif}
+    .file-info{min-width:0;flex:1}
+    .file-name{display:block;overflow:hidden;color:#374852;font-size:9px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+    .file-meta{display:block;margin-top:2px;color:#91a0a7;font-size:8px}
+    .remove-file{width:27px;height:27px;flex:0 0 27px;border:0;border-radius:7px;background:transparent;color:#9aa5aa;font-size:15px;cursor:pointer}
+    .remove-file:hover{background:#fff0f0;color:var(--danger)}
+    .queue-empty{padding:11px;border:1px dashed #e3e9eb;border-radius:9px;color:#89969e;font-size:9px;text-align:center}
+    .upload-options{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:17px;padding-top:14px;border-top:1px solid #edf0f2}
+    .option-fields{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .field-label{display:flex;align-items:center;gap:7px;color:#53636d;font-size:9px}
+    .field-label select{min-height:33px;padding:5px 8px;border:1px solid #dce4e7;border-radius:8px;background:#fff;color:#3f505a;font-size:9px}
+    .checkbox-label{display:flex;align-items:center;gap:7px;color:#66757e;font-size:9px;cursor:pointer}
+    .checkbox-label input{width:14px;height:14px;margin:0;accent-color:var(--primary)}
+    .upload-actions{display:flex;align-items:center;gap:7px}
+    .message{margin-top:12px;padding:11px 12px;border:1px solid #e2e9e6;border-radius:9px;background:#f6faf7;color:#3b6c52;font-size:9px;line-height:1.8;white-space:pre-wrap}
+    .message.bad{border-color:#f0dfe0;background:#fff7f7;color:#a8434b}
+    .upload-aside{display:grid;gap:11px}
+    .aside-card{padding:15px}
+    .aside-card h3{margin:0;font-size:11px}
+    .aside-card p{margin:6px 0 0;color:#75848d;font-size:9px;line-height:1.9}
+    .guide-list{display:grid;gap:11px;margin:12px 0 0;padding:0;list-style:none}
+    .guide-list li{display:flex;align-items:flex-start;gap:8px;color:#5f707a;font-size:9px;line-height:1.7}
+    .guide-number{display:grid;place-items:center;width:20px;height:20px;flex:0 0 20px;border-radius:7px;background:#edf4f2;color:#38736d;font:700 9px Arial,sans-serif}
+    .template-gate{padding:13px;border:1px solid #eee4cf;border-radius:11px;background:#fcf8ef}
+    .template-gate strong{display:block;color:#765d31;font-size:10px}
+    .template-gate p{margin:4px 0 0;color:#8c7956;font-size:9px;line-height:1.8}
+    .template-gate[hidden]{display:none}
+    #pmsg:empty{display:none}
+    .review-shell{height:calc(100vh - 190px);min-height:650px;overflow:hidden;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}
+    #review-frame{display:block;width:100%;height:100%;border:0;background:#f5f7f8}
+    .results-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
+    .result-stat{padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#fff}
+    .result-stat span{display:block;color:#87949c;font-size:9px}
+    .result-stat strong{display:block;margin-top:4px;color:#2b3c45;font-size:20px}
+    .results-card{overflow:hidden}
+    .results-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 17px;border-bottom:1px solid #edf0f2}
+    .results-toolbar h3{margin:0;font-size:12px}
+    .results-toolbar p{margin:3px 0 0;color:#83919a;font-size:9px}
+    .results-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .search-input{min-height:35px;width:min(220px,36vw);padding:6px 10px;border:1px solid #dce4e7;border-radius:8px;background:#fbfcfc;color:#33454f;font-size:9px}
+    .table-wrap{overflow:auto}
+    #rt{width:100%;border-collapse:separate;border-spacing:0;min-width:520px}
+    #rt th,#rt td{padding:11px 12px;border-bottom:1px solid #edf0f2;text-align:right;font-size:9px;vertical-align:top}
+    #rt th{position:sticky;top:0;background:#f7f9fa;color:#53636d;font-weight:800;white-space:nowrap}
+    #rt td{color:#4e5e67}
+    #rt tbody tr:hover td{background:#fafcfc}
+    #rt tr:last-child td{border-bottom:0}
+    .table-empty{padding:36px 18px!important;color:#89969e!important;text-align:center!important;line-height:1.8}
+    .empty-state{padding:35px 20px;text-align:center}
+    .empty-state-icon{display:grid;place-items:center;width:48px;height:48px;margin:0 auto 11px;border-radius:14px;background:#edf4f2;color:var(--primary);font-size:20px}
+    .empty-state strong{display:block;color:#3d4e58;font-size:12px}
+    .empty-state p{max-width:390px;margin:6px auto 12px;color:#83919a;font-size:9px;line-height:1.9}
+    .danger-link{color:var(--danger)!important}
+    dialog{width:min(420px,calc(100vw - 28px));padding:0;border:1px solid var(--line);border-radius:15px;background:#fff;color:var(--ink);box-shadow:0 24px 80px rgba(10,25,34,.25)}
+    dialog::backdrop{background:rgba(20,34,42,.48);backdrop-filter:blur(3px)}
+    .dialog-body{padding:20px}
+    .dialog-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:#fff0f0;color:var(--danger);font-size:16px}
+    .dialog-body h3{margin:13px 0 5px;font-size:14px}
+    .dialog-body p{margin:0;color:#78858e;font-size:10px;line-height:1.8}
+    .dialog-actions{display:flex;justify-content:flex-start;gap:8px;margin-top:18px}
+    .mobile-nav-label{display:none}
+    @media(max-width:1120px){
+      .app-shell{grid-template-columns:218px minmax(0,1fr)}
+      .sidebar{padding:18px 11px}
+      .upload-layout{grid-template-columns:minmax(0,1.35fr) minmax(220px,.8fr)}
+      #generator-frame{height:calc(100vh - 190px)}
+    }
+    @media(max-width:900px){
+      .app-shell{grid-template-columns:74px minmax(0,1fr)}
+      .sidebar{align-items:center;padding:15px 8px}
+      .brand{justify-content:center;width:100%;padding:0 0 15px}
+      .brand-copy,.nav-label,.nav-copy,.nav-count,.sidebar-help,.sidebar-footer{display:none}
+      .nav-list{width:100%;gap:8px}
+      .nav-item{justify-content:center;padding:7px}
+      .nav-icon{width:35px;height:35px;flex-basis:35px}
+      .workflow{gap:6px}
+      .workflow-step{justify-content:center;padding:9px 7px}
+      .step-copy small{display:none}
+      .upload-layout{grid-template-columns:1fr}
+      .upload-aside{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media(max-width:620px){
+      .app-shell{display:block;padding-bottom:68px}
+      .sidebar{position:fixed;z-index:50;inset:auto 0 0;height:64px;display:block;padding:5px 8px calc(5px + env(safe-area-inset-bottom));border-top:1px solid rgba(255,255,255,.1)}
+      .brand,.sidebar-spacer,.sidebar-help,.sidebar-footer,.nav-label{display:none}
+      .nav-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;height:100%}
+      .nav-item{height:100%;min-height:0;flex-direction:column;justify-content:center;gap:2px;padding:4px 2px;border-radius:9px}
+      .nav-icon{width:25px;height:23px;flex:0 0 23px;font-size:12px}
+      .nav-copy{display:block;flex:initial}
+      .nav-copy strong{font-size:8px;white-space:nowrap}
+      .nav-copy small,.nav-count{display:none}
+      .app-content{min-height:calc(100vh - 64px)}
+      .topbar{position:static;min-height:70px;padding:11px 13px}
+      .topbar h1{font-size:15px}
+      .topbar p{font-size:9px}
+      .local-badge{display:none}
+      .status-pill{font-size:8px;padding:5px 7px}
+      .main-content{padding:14px 10px 24px}
+      .workflow{display:none}
+      .workflow-step{flex-direction:column;gap:4px;padding:7px 2px;border-radius:9px}
+      .step-number{width:21px;height:21px;flex-basis:21px;font-size:8px}
+      .step-copy strong{font-size:7px}
+      .step-copy small{display:none}
+      .view-heading{align-items:flex-start;flex-direction:column;gap:7px}
+      .view-heading h2{font-size:15px}
+      .upload-overview,.results-stats{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+      .overview-card{display:block;padding:9px}
+      .overview-icon{width:28px;height:28px;margin-bottom:7px;font-size:12px}
+      .overview-copy strong{font-size:15px}
+      .overview-copy small{font-size:8px}
+      .overview-copy em{font-size:7px}
+      .upload-main{padding:12px}
+      .dropzone{min-height:180px;padding:16px}
+      .upload-aside{grid-template-columns:1fr}
+      .upload-options{align-items:stretch;flex-direction:column}
+      .option-fields{align-items:flex-start;flex-direction:column}
+      .upload-actions{display:grid;grid-template-columns:1fr 1fr}
+      .upload-actions .button{width:100%}
+      .results-toolbar{align-items:flex-start;flex-direction:column}
+      .results-actions{width:100%}
+      .search-input{width:100%;flex:1}
+      .review-shell{height:calc(100vh - 185px);min-height:560px}
+      #generator-frame{height:calc(100vh - 206px);min-height:690px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="التنقل الرئيسي">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">Q</span>
+      <div class="brand-copy">
+        <strong>منظومة الاستبيانات</strong>
+        <small>QUESTIONNAIRE WORKSPACE</small>
+      </div>
+    </div>
+
+    <nav aria-label="أقسام التطبيق">
+      <p class="nav-label">مساحة العمل</p>
+      <div class="nav-list">
+        <button class="nav-item active" type="button" data-t="tpl" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">▤</span>
+          <span class="nav-copy"><strong>تصميم القالب</strong><small>إنشاء الورقة وتجهيزها</small></span>
+          <span class="nav-count">01</span>
+        </button>
+        <button class="nav-item" type="button" data-t="up">
+          <span class="nav-icon" aria-hidden="true">⇧</span>
+          <span class="nav-copy"><strong>رفع ومعالجة</strong><small>قراءة الأوراق الممسوحة</small></span>
+          <span class="nav-count">02</span>
+        </button>
+        <button class="nav-item" type="button" data-t="review">
+          <span class="nav-icon" aria-hidden="true">✓</span>
+          <span class="nav-copy"><strong>مراجعة الإجابات</strong><small>تأكيد النتائج وتصحيحها</small></span>
+          <span class="nav-count" id="rv">0/0</span>
+        </button>
+        <button class="nav-item" type="button" data-t="res">
+          <span class="nav-icon" aria-hidden="true">▥</span>
+          <span class="nav-copy"><strong>النتائج والتصدير</strong><small>عرض البيانات وتنزيلها</small></span>
+          <span class="nav-count">04</span>
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-help">
+      <strong>تسلسل العمل المقترح</strong>
+      <p>جهّز قالب الاستبيان أولاً، ثم ارفع الأوراق المعبأة. راجع القراءات غير المؤكدة قبل تصدير النتائج.</p>
+    </div>
+    <div class="sidebar-footer"><span>LOCAL WORKSPACE</span><span>v1.0</span></div>
+  </aside>
+
+  <div class="app-content">
+    <header class="topbar">
+      <div class="topbar-heading">
+        <p class="eyebrow">QUESTIONNAIRE MANAGEMENT</p>
+        <h1 id="page-title">تصميم قالب الاستبيان</h1>
+        <p id="page-description">أنشئ نموذجاً واضحاً ومتوافقاً مع قراءة العلامات، ثم راجع شكله قبل الطباعة.</p>
+      </div>
+      <div class="topbar-meta">
+        <span id="st" class="status-pill" data-state="empty"><i class="status-dot"></i><span>جارٍ الاتصال...</span></span>
+        <span class="local-badge">تشغيل محلي</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <nav class="workflow" aria-label="مراحل العمل">
+        <button class="workflow-step active" type="button" data-t="tpl" aria-current="step">
+          <span class="step-number">1</span><span class="step-copy"><strong>إعداد القالب</strong><small>التصميم والتنسيق</small></span>
+        </button>
+        <button class="workflow-step" type="button" data-t="up">
+          <span class="step-number">2</span><span class="step-copy"><strong>رفع الأوراق</strong><small>إضافة ملفات المسح</small></span>
+        </button>
+        <button class="workflow-step" type="button" data-t="review">
+          <span class="step-number">3</span><span class="step-copy"><strong>مراجعة الإجابات</strong><small>التدقيق والحفظ</small></span>
+        </button>
+        <button class="workflow-step" type="button" data-t="res">
+          <span class="step-number">4</span><span class="step-copy"><strong>تصدير النتائج</strong><small>CSV أو JSON</small></span>
+        </button>
+      </nav>
+
+      <section id="sec-tpl" class="workspace-view active" aria-label="تصميم قالب الاستبيان">
+        <div class="view-heading">
+          <div><h2>مصمم القالب</h2><p>أدخل محتوى الاستبيان واضبط إعدادات الطباعة. راجع المعاينة قبل إنشاء الملفات.</p></div>
+          <span class="subtle-tag">ورق A4 · مخرجات PDF وPNG</span>
+        </div>
+        <div class="design-shell card">
+          <iframe id="generator-frame" src="/generator?embedded=1" title="مصمم قالب الاستبيان"></iframe>
+        </div>
+      </section>
+
+      <section id="sec-up" class="workspace-view" aria-label="رفع ومعالجة الأوراق">
+        <div class="view-heading">
+          <div><h2>رفع الأوراق المعبأة</h2><p>أضف صور المسح أو ملفات PDF، ثم شغّل القراءة الآلية باستخدام قالب الاستبيان الحالي.</p></div>
+          <span class="subtle-tag" id="template-badge">التحقق من القالب...</span>
+        </div>
+
+        <div class="upload-overview" aria-label="ملخص القالب والدفعة">
+          <div class="overview-card"><span class="overview-icon" aria-hidden="true">▤</span><div class="overview-copy"><small>صفحات القالب</small><strong id="template-pages">—</strong><em>حجم الورقة A4</em></div></div>
+          <div class="overview-card"><span class="overview-icon" aria-hidden="true">☷</span><div class="overview-copy"><small>أسئلة القالب</small><strong id="template-questions">—</strong><em>وفق ترتيب النموذج</em></div></div>
+          <div class="overview-card"><span class="overview-icon" aria-hidden="true">▧</span><div class="overview-copy"><small>الأوراق المعالجة</small><strong id="processed-sheets">0</strong><em>في مساحة العمل الحالية</em></div></div>
+        </div>
+
+        <div id="template-gate" class="template-gate" hidden>
+          <strong>يلزم إنشاء قالب قبل رفع الأوراق</strong>
+          <p>ارجع إلى «تصميم القالب» وأنشئ ملفات PDF وPNG أولاً. يعتمد محرك القراءة على القالب وإحداثياته.</p>
+        </div>
+
+        <div class="upload-layout">
+          <section class="upload-main card" aria-labelledby="upload-title">
+            <div class="card-heading">
+              <div><h3 id="upload-title">ملفات الاستبيان</h3><p>يمكنك تحديد عدة ملفات أو سحبها وإفلاتها هنا.</p></div>
+              <span class="subtle-tag">رفع متعدد</span>
+            </div>
+
+            <div id="drop" class="dropzone" tabindex="0" role="button" aria-label="اختر ملفات المسح أو اسحبها إلى هذه المنطقة">
+              <span class="drop-icon" aria-hidden="true">⇧</span>
+              <strong>اسحب الملفات وأفلتها هنا</strong>
+              <p>أو اختر الملفات من جهازك لإضافتها إلى قائمة المعالجة.</p>
+              <button class="button" id="choose-files" type="button">اختيار الملفات</button>
+              <p class="supported-formats">PNG · JPG · JPEG · TIF · TIFF · BMP · PDF</p>
+            </div>
+            <input type="file" id="fin" multiple accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp,.pdf,image/*,application/pdf" hidden>
+
+            <div class="queue-section">
+              <div class="queue-heading"><strong>قائمة الملفات المضافة</strong><span id="queue-count" class="queue-count">0 ملف</span></div>
+              <ul id="fl" class="file-list" aria-live="polite"><li class="queue-empty">لم تتم إضافة ملفات بعد.</li></ul>
+            </div>
+
+            <div class="upload-options">
+              <div class="option-fields">
+                <label class="field-label" for="pg">رقم الصفحة
+                  <select id="pg"><option value="">اكتشاف تلقائي</option></select>
+                </label>
+                <label class="checkbox-label"><input type="checkbox" id="fresh"> بدء دفعة جديدة ومسح النتائج السابقة</label>
+              </div>
+              <div class="upload-actions">
+                <button class="button button-primary" id="go" type="button" disabled>بدء المعالجة</button>
+                <button class="button button-quiet" id="clear-files" type="button" disabled>إفراغ القائمة</button>
+              </div>
+            </div>
+            <div id="pmsg" role="status" aria-live="polite"></div>
+          </section>
+
+          <aside class="upload-aside">
+            <section class="aside-card card">
+              <h3>قبل بدء المعالجة</h3>
+              <ol class="guide-list">
+                <li><span class="guide-number">1</span><span>تأكد من طباعة الأوراق باستخدام القالب نفسه الذي أنشأته من التطبيق.</span></li>
+                <li><span class="guide-number">2</span><span>ارفع صوراً واضحة وكاملة للصفحة مع ظهور علامات الزوايا.</span></li>
+                <li><span class="guide-number">3</span><span>اترك رقم الصفحة على «اكتشاف تلقائي» ما لم تكن بحاجة إلى تحديده يدوياً.</span></li>
+                <li><span class="guide-number">4</span><span>بعد المعالجة انتقل إلى المراجعة لتأكيد القراءات التي تحتاج إلى تدقيق.</span></li>
+              </ol>
+            </section>
+            <section class="aside-card card">
+              <h3>ما الملفات المدعومة؟</h3>
+              <p>صور PNG وJPG وTIF وBMP، بالإضافة إلى مستندات PDF. عند رفع عدة ملفات، يرتبها النظام حسب الاسم قبل معالجتها.</p>
+            </section>
+          </aside>
+        </div>
+      </section>
+
+      <section id="sec-review" class="workspace-view" aria-label="مراجعة الإجابات">
+        <div class="view-heading">
+          <div><h2>مراجعة الإجابات</h2><p>افحص القراءة الآلية، صحّح الإجابات عند الحاجة، ثم احفظ الورقة لتظهر في النتائج.</p></div>
+          <span class="subtle-tag">التحقق قبل التصدير</span>
+        </div>
+        <div class="review-shell"><iframe id="review-frame" src="about:blank" title="مراجعة إجابات الاستبيان"></iframe></div>
+      </section>
+
+      <section id="sec-res" class="workspace-view" aria-label="النتائج والتصدير">
+        <div class="view-heading">
+          <div><h2>النتائج والتصدير</h2><p>اعرض الإجابات التي تم حفظ مراجعتها، ثم نزّل البيانات بصيغة مناسبة للتحليل.</p></div>
+          <span class="subtle-tag">البيانات المحفوظة فقط</span>
+        </div>
+        <div class="results-stats">
+          <div class="result-stat"><span>إجمالي الأوراق المرفوعة</span><strong id="stat-total">0</strong></div>
+          <div class="result-stat"><span>أوراق تمت مراجعتها</span><strong id="stat-reviewed">0</strong></div>
+          <div class="result-stat"><span>بانتظار المراجعة</span><strong id="stat-pending">0</strong></div>
+        </div>
+        <section class="results-card card">
+          <div class="results-toolbar">
+            <div><h3>سجل الإجابات المعتمدة</h3><p id="results-caption">تظهر هنا الأوراق التي تم حفظ مراجعتها.</p></div>
+            <div class="results-actions">
+              <input id="results-search" class="search-input" type="search" placeholder="ابحث برقم الورقة..." aria-label="البحث في النتائج">
+              <a class="button button-primary" id="export-csv" href="/api/export.csv">تنزيل CSV</a>
+              <a class="button" id="export-json" href="/api/export.json">تنزيل JSON</a>
+              <button id="reset-all" class="button button-danger" type="button">مسح بيانات المعالجة</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table id="rt"><tbody><tr><td class="table-empty">جارٍ تحميل النتائج...</td></tr></tbody></table></div>
+        </section>
+      </section>
+    </main>
+  </div>
+</div>
+
+<dialog id="fresh-dialog" aria-labelledby="fresh-title">
+  <div class="dialog-body">
+    <span class="dialog-icon" aria-hidden="true">!</span>
+    <h3 id="fresh-title">بدء دفعة جديدة؟</h3>
+    <p>سيتم مسح الأوراق المعالجة ونتائج المراجعة السابقة قبل تشغيل هذه الدفعة. سيبقى قالب الاستبيان كما هو. تأكد من تنزيل أي نتائج تحتاج إليها.</p>
+    <div class="dialog-actions">
+      <button class="button button-danger" id="confirm-fresh" type="button">مسح السابق وبدء المعالجة</button>
+      <button class="button" id="cancel-fresh" type="button">عودة</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="reset-dialog" aria-labelledby="reset-title">
+  <div class="dialog-body">
+    <span class="dialog-icon" aria-hidden="true">!</span>
+    <h3 id="reset-title">حذف بيانات المعالجة؟</h3>
+    <p>سيتم حذف الأوراق المرفوعة والإجابات التي تمت مراجعتها. لن يتم حذف قالب الاستبيان. لا يمكن التراجع عن هذه العملية.</p>
+    <div class="dialog-actions">
+      <button class="button button-danger" id="confirm-reset" type="button">نعم، احذف البيانات</button>
+      <button class="button" id="cancel-reset" type="button">إلغاء</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+const $ = selector => document.querySelector(selector);
+const $$ = selector => Array.from(document.querySelectorAll(selector));
+const allowedExtensions = new Set(["png","jpg","jpeg","tif","tiff","bmp","pdf"]);
+const pageCopy = {
+  tpl: ["تصميم قالب الاستبيان", "أنشئ نموذجاً واضحاً ومتوافقاً مع قراءة العلامات، ثم راجع شكله قبل الطباعة."],
+  up: ["رفع ومعالجة الأوراق", "أضف ملفات المسح وشغّل القراءة الآلية باستخدام القالب الذي أنشأته."],
+  review: ["مراجعة الإجابات", "راجع نتائج القراءة الآلية وصحّح ما يلزم قبل حفظها."],
+  res: ["النتائج والتصدير", "اعرض الإجابات المحفوظة ونزّلها بصيغ مناسبة للتحليل."]
+};
+let files = [];
+let state = {};
+let resultsCache = null;
+let activeTab = "tpl";
+let isProcessing = false;
+
+function show(tab, updateHash = true) {
+  if (!pageCopy[tab]) return;
+  activeTab = tab;
+  $$(".nav-item,.workflow-step").forEach(button => {
+    const active = button.dataset.t === tab;
+    button.classList.toggle("active", active);
+    if (button.classList.contains("nav-item")) {
+      if (active) button.setAttribute("aria-current", "page");
+      else button.removeAttribute("aria-current");
+    }
+    if (button.classList.contains("workflow-step")) {
+      if (active) button.setAttribute("aria-current", "step");
+      else button.removeAttribute("aria-current");
+    }
+  });
+  $$(".workspace-view").forEach(section => section.classList.toggle("active", section.id === "sec-" + tab));
+  $("#page-title").textContent = pageCopy[tab][0];
+  $("#page-description").textContent = pageCopy[tab][1];
+  if (updateHash && history.replaceState) history.replaceState(null, "", "#" + tab);
+  if (tab === "review") {
+    if ($("#review-frame").src === "about:blank" || $("#review-frame").dataset.loaded !== "true") {
+      $("#review-frame").src = "/review";
+      $("#review-frame").dataset.loaded = "true";
+    } else {
+      $("#review-frame").contentWindow?.location.reload();
+    }
+  }
+  if (tab === "res") loadResults();
+  refreshStatus();
+  window.scrollTo(0, 0);
+}
+
+$$("[data-t]").forEach(button => button.addEventListener("click", () => show(button.dataset.t)));
+window.addEventListener("hashchange", () => {
+  const tab = location.hash.slice(1);
+  if (pageCopy[tab] && tab !== activeTab) show(tab, false);
+});
+
+async function jsonFetch(url, options = {}) {
+  const response = await fetch(url, options);
+  let payload;
+  try { payload = await response.json(); }
+  catch { throw new Error("تعذر فهم استجابة الخادم. أعد المحاولة أو أعد تشغيل التطبيق."); }
+  if (!response.ok || payload.ok === false) throw new Error(payload.error || "تعذر تنفيذ العملية.");
+  return payload;
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + " KB";
+  return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
+function fileKey(file) { return [file.name, file.size, file.lastModified].join(":"); }
+function addFiles(list) {
+  if (isProcessing) return;
+  let rejected = 0, added = 0;
+  for (const file of Array.from(list || [])) {
+    const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "";
+    if (!allowedExtensions.has(extension)) { rejected++; continue; }
+    if (files.some(existing => fileKey(existing) === fileKey(file))) continue;
+    files.push(file); added++;
+  }
+  drawFiles();
+  if (rejected) setMessage("pmsg", "تم تجاهل " + rejected + " ملف غير مدعوم. الصيغ المقبولة موضحة في منطقة الرفع.", false);
+  else if (added) setMessage("pmsg", added + " ملف تمت إضافته إلى القائمة. راجع القائمة ثم ابدأ المعالجة.", true);
+}
+function drawFiles() {
+  const list = $("#fl");
+  list.replaceChildren();
+  $("#queue-count").textContent = files.length + (files.length === 1 ? " ملف" : " ملفات");
+  if (!files.length) {
+    const empty = document.createElement("li");
+    empty.className = "queue-empty";
+    empty.textContent = "لم تتم إضافة ملفات بعد.";
+    list.append(empty);
+  } else {
+    files.forEach((file, index) => {
+      const item = document.createElement("li");
+      item.className = "file-row";
+      const type = document.createElement("span");
+      type.className = "file-type";
+      type.textContent = file.name.split(".").pop().toUpperCase();
+      const info = document.createElement("span");
+      info.className = "file-info";
+      const name = document.createElement("strong");
+      name.className = "file-name";
+      name.textContent = file.name;
+      const meta = document.createElement("small");
+      meta.className = "file-meta";
+      meta.textContent = formatBytes(file.size);
+      info.append(name, meta);
+      const remove = document.createElement("button");
+      remove.className = "remove-file";
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", "إزالة " + file.name);
+      remove.disabled = isProcessing;
+      remove.addEventListener("click", () => { files.splice(index, 1); drawFiles(); });
+      item.append(type, info, remove);
+      list.append(item);
+    });
+  }
+  $("#go").disabled = !files.length || !state.template || isProcessing;
+  $("#clear-files").disabled = !files.length || isProcessing;
+  $("#choose-files").disabled = isProcessing;
+  fileInput.disabled = isProcessing;
+  drop.setAttribute("aria-disabled", isProcessing ? "true" : "false");
+}
+function setMessage(target, text, ok = false) {
+  const element = $("#" + target);
+  element.replaceChildren();
+  if (!text) return;
+  const message = document.createElement("div");
+  message.className = "message" + (ok ? "" : " bad");
+  message.textContent = text;
+  element.append(message);
+}
+function updateTemplateOverview() {
+  $("#template-pages").textContent = state.template ? state.pages : "—";
+  $("#template-questions").textContent = state.template ? state.questions : "—";
+  $("#processed-sheets").textContent = state.sheets ?? 0;
+  $("#template-badge").textContent = state.template ? "القالب جاهز للمعالجة" : "لم يتم إنشاء قالب";
+  $("#template-gate").hidden = Boolean(state.template);
+  $("#go").disabled = !files.length || !state.template || isProcessing;
+  $("#clear-files").disabled = !files.length || isProcessing;
+}
+async function refreshStatus() {
+  try {
+    state = await jsonFetch("/api/status");
+    $("#rv").textContent = (state.reviewed || 0) + "/" + (state.sheets || 0);
+    const badge = $("#st");
+    badge.dataset.state = state.template ? "ready" : "empty";
+    badge.querySelector("span:last-child").textContent = state.template
+      ? "القالب جاهز · " + state.pages + " صفحة"
+      : "أنشئ قالباً للبدء";
+    updateTemplateOverview();
+    if (activeTab === "res") updateResultStats();
+  } catch (error) {
+    $("#st").dataset.state = "empty";
+    $("#st").querySelector("span:last-child").textContent = "تعذر الاتصال بالخادم";
+  }
+}
+
+const drop = $("#drop");
+const fileInput = $("#fin");
+$("#choose-files").addEventListener("click", event => { event.stopPropagation(); fileInput.click(); });
+drop.addEventListener("click", event => { if (event.target.id !== "choose-files") fileInput.click(); });
+drop.addEventListener("keydown", event => {
+  if (event.key === "Enter" || event.key === " ") { event.preventDefault(); fileInput.click(); }
+});
+["dragover","dragenter"].forEach(name => drop.addEventListener(name, event => {
+  event.preventDefault(); drop.classList.add("over");
+}));
+["dragleave","drop"].forEach(name => drop.addEventListener(name, event => {
+  event.preventDefault(); drop.classList.remove("over");
+}));
+drop.addEventListener("drop", event => addFiles(event.dataTransfer.files));
+fileInput.addEventListener("change", () => { addFiles(fileInput.files); fileInput.value = ""; });
+$("#clear-files").addEventListener("click", () => { files = []; drawFiles(); setMessage("pmsg", ""); });
+
+async function processFiles() {
+  if (!files.length || !state.template || isProcessing) return;
+  isProcessing = true;
+  drawFiles();
+  $("#go").textContent = "جارٍ المعالجة...";
+  setMessage("pmsg", "جارٍ رفع الملفات وتشغيل محرك قراءة العلامات. قد تستغرق المعالجة وقتاً حسب عدد الصفحات.", true);
+  const form = new FormData();
+  files.forEach(file => form.append("files", file));
+  form.append("fresh", $("#fresh").checked ? "1" : "0");
+  form.append("page", $("#pg").value);
+  try {
+    const result = await jsonFetch("/api/process", { method: "POST", body: form });
+    const summary = "اكتملت المعالجة بنجاح.\nالأوراق: " + result.sheets +
+      " | الصور: " + result.images + " | أخطاء المحاذاة: " + result.errors +
+      " | إجابات تحتاج مراجعة: " + result.flagged;
+    files = [];
+    drawFiles();
+    $("#fresh").checked = false;
+    setMessage("pmsg", summary + "\nانتقل إلى «مراجعة الإجابات» لتأكيد القراءات.", true);
+    await refreshStatus();
+  } catch (error) {
+    setMessage("pmsg", error.message, false);
+  } finally {
+    isProcessing = false;
+    $("#go").textContent = "بدء المعالجة";
+    drawFiles();
+  }
+}
+$("#go").addEventListener("click", () => {
+  if ($("#fresh").checked) $("#fresh-dialog").showModal();
+  else processFiles();
+});
+$("#cancel-fresh").addEventListener("click", () => $("#fresh-dialog").close());
+$("#confirm-fresh").addEventListener("click", async () => {
+  $("#fresh-dialog").close();
+  await processFiles();
+});
+
+function updateResultStats() {
+  if (!state || !Number.isFinite(state.sheets)) return;
+  $("#stat-total").textContent = state.sheets;
+  $("#stat-reviewed").textContent = state.reviewed || 0;
+  $("#stat-pending").textContent = Math.max(0, state.sheets - (state.reviewed || 0));
+  const exportReady = Boolean(resultsCache?.rows?.length);
+  ["#export-csv", "#export-json"].forEach(selector => {
+    const link = $(selector);
+    link.classList.toggle("disabled", !exportReady);
+    link.setAttribute("aria-disabled", exportReady ? "false" : "true");
+    link.tabIndex = exportReady ? 0 : -1;
+  });
+}
+function addCell(row, text, header = false) {
+  const cell = document.createElement(header ? "th" : "td");
+  cell.textContent = text == null || text === "" ? "—" : String(text);
+  row.append(cell);
+}
+function renderResults() {
+  const table = $("#rt");
+  table.replaceChildren();
+  const rows = (resultsCache?.rows || []).filter(row => String(row.sheet_id ?? "").toLowerCase().includes($("#results-search").value.trim().toLowerCase()));
+  const questions = resultsCache?.questions || [];
+  if (!rows.length) {
+    const body = document.createElement("tbody");
+    const row = document.createElement("tr");
+    const cell = document.createElement("td");
+    cell.className = "table-empty";
+    cell.colSpan = Math.max(1, questions.length + 1);
+    cell.textContent = resultsCache?.rows?.length
+      ? "لا توجد نتائج تطابق عبارة البحث."
+      : "لا توجد إجابات محفوظة بعد. عالج الأوراق ثم راجعها واحفظ الإجابات أولاً.";
+    row.append(cell); body.append(row); table.append(body);
+    return;
+  }
+  const head = document.createElement("thead");
+  const headerRow = document.createElement("tr");
+  addCell(headerRow, "رقم الورقة", true);
+  questions.forEach(question => addCell(headerRow, question.text, true));
+  head.append(headerRow);
+  const body = document.createElement("tbody");
+  rows.forEach(record => {
+    const row = document.createElement("tr");
+    addCell(row, record.sheet_id);
+    questions.forEach(question => addCell(row, record.answers?.[question.id]));
+    body.append(row);
+  });
+  table.append(head, body);
+}
+async function loadResults() {
+  try {
+    resultsCache = await jsonFetch("/api/results");
+    $("#results-caption").textContent = resultsCache.rows.length + " ورقة محفوظة في ملف النتائج.";
+    renderResults();
+    await refreshStatus();
+  } catch (error) {
+    setMessage("pmsg", error.message, false);
+    $("#results-caption").textContent = "تعذر تحميل النتائج.";
+  }
+}
+$("#results-search").addEventListener("input", renderResults);
+["#export-csv", "#export-json"].forEach(selector => $(selector).addEventListener("click", event => {
+  if ($(selector).getAttribute("aria-disabled") === "true") event.preventDefault();
+}));
+
+const resetDialog = $("#reset-dialog");
+$("#reset-all").addEventListener("click", () => {
+  $("#reset-title").textContent = "حذف بيانات المعالجة؟";
+  $("#reset-title").nextElementSibling.textContent = "سيتم حذف الأوراق المرفوعة والإجابات التي تمت مراجعتها. لن يتم حذف قالب الاستبيان. لا يمكن التراجع عن هذه العملية.";
+  resetDialog.showModal();
+});
+$("#cancel-reset").addEventListener("click", () => resetDialog.close());
+$("#confirm-reset").addEventListener("click", async () => {
+  const button = $("#confirm-reset");
+  button.disabled = true;
+  button.textContent = "جارٍ الحذف...";
+  try {
+    await jsonFetch("/api/reset", { method: "POST" });
+    resultsCache = { rows: [], questions: resultsCache?.questions || [] };
+    renderResults();
+    await refreshStatus();
+    $("#results-caption").textContent = "تم مسح بيانات المعالجة. قالب الاستبيان محفوظ.";
+    if ($("#review-frame").dataset.loaded === "true") $("#review-frame").contentWindow?.location.reload();
+    resetDialog.close();
+  } catch (error) {
+    $("#reset-title").textContent = "تعذر حذف البيانات";
+    $("#reset-title").nextElementSibling.textContent = error.message;
+  } finally {
+    button.disabled = false;
+    button.textContent = "نعم، احذف البيانات";
+  }
+});
+
+async function initialize() {
+  drawFiles();
+  await refreshStatus();
+  const initial = location.hash.slice(1);
+  show(pageCopy[initial] ? initial : "tpl", false);
+  if (pageCopy[initial] && initial === "res") await loadResults();
+}
+initialize();
+</script>
+</body>
+</html>

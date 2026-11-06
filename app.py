@@ -28,6 +28,7 @@ from typing import Any
 from flask import Flask, Response, jsonify, request, send_file, send_from_directory
 
 HERE = Path(__file__).resolve().parent
+WEB = HERE / "web"
 os.chdir(HERE)  # omr.py يستخدم مجلد العمل الحالي للمجلدات template/work/output.
 
 # يدعم وضع omr.py بجوار app.py أو في المجلد الأب (كما في ملفات هذه المحادثة).
@@ -175,13 +176,13 @@ def all_results() -> list[dict]:
 # ---------- صفحات الواجهة وملفات محرك JavaScript ----------
 @app.get("/")
 def index():
-    return send_file(HERE / "app.html")
+    return send_file(WEB / "app.html")
 
 
 @app.get("/generator")
 def generator_page():
     # يعرض واجهة محرك JavaScript داخل تبويب التطبيق الموحد.
-    return send_file(HERE / "index.html")
+    return send_file(WEB / "index.html")
 
 
 @app.get("/review")
@@ -192,7 +193,9 @@ def review_page():
 @app.get("/<path:name>")
 def engine_asset(name: str):
     # index.html الخاص بالمولّد يطلب app.css وapp.js وsurvey.json من نفس الخادم.
-    if name in {"app.js", "app.css", "survey.json"}:
+    if name in {"app.js", "app.css"}:
+        return send_from_directory(WEB, name)
+    if name == "survey.json":
         return send_from_directory(HERE, name)
     return err("الملف غير موجود.", 404)
 

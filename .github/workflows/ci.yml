@@ -1,0 +1,50 @@
+name: Project checks
+
+on:
+  push:
+    branches: [main, pdf-layout-controls]
+  pull_request:
+    branches: [main]
+
+jobs:
+  javascript:
+    name: JavaScript unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+
+  python:
+    name: Python and OMR unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install Flask>=3.0 numpy opencv-python-headless
+      - run: python -m py_compile app.py omr.py
+      - run: python -m unittest discover -s tests -p "test_ui_routes.py" -v
+      - run: python -m unittest discover -s tests -p "test_omr_unit.py" -v
+
+  template-integration:
+    name: Generate PDF and verify OMR compatibility
+    needs: [javascript, python]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install numpy opencv-python-headless
+      - run: google-chrome --version
+      - run: npm run generate
+      - run: python -m unittest discover -s tests -p "test_generated_template.py" -v

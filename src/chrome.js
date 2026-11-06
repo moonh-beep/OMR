@@ -1,8 +1,20 @@
 import { spawn } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import net from "node:net";
 import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
+
+async function reserveDebugPort() {
+  const server = net.createServer();
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(0, "127.0.0.1", resolve);
+  });
+  const { port } = server.address();
+  await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+  return port;
+}
 
 function findExecutable() {
   const configured = process.env.PLAYWRIGHT_EXECUTABLE_PATH || process.env.BROWSER_PATH;
@@ -172,6 +184,8 @@ export async function launchChrome({ width = 794, height = 1123, deviceScaleFact
     throw new Error("لم يتم العثور على Chromium أو Chrome أو Edge. ثبّت أحدها أو حدّد PLAYWRIGHT_EXECUTABLE_PATH.");
   }
   const profile = await mkdtemp(path.join(os.tmpdir(), "questionnaire-chrome-"));
+  const debugPort = await reserveDebugPort();
+  let stderr = "";
   const child = spawn(executable, [
     "--headless=new",
     "--no-sandbox",
@@ -181,29 +195,38 @@ export async function launchChrome({ width = 794, height = 1123, deviceScaleFact
     "--no-first-run",
     "--no-default-browser-check",
     "--remote-debugging-address=127.0.0.1",
-    "--remote-debugging-port=0",
+    `--remote-debugging-port=${debugPort}`,
     "--remote-allow-origins=*",
     `--user-data-dir=${profile}`,
     "about:blank",
-  ], { stdio: "ignore", windowsHide: true });
+  ], { stdio: ["ignore", "ignore", "pipe"], windowsHide: true });
+  child.stderr.setEncoding("utf8");
+  child.stderr.on("data", (chunk) => {
+    stderr = (stderr + chunk).slice(-6000);
+  });
 
   try {
-    const activePortPath = path.join(profile, "DevToolsActivePort");
-    let activePort;
-    const deadline = Date.now() + 15000;
+    const versionUrl = `http://127.0.0.1:${debugPort}/json/version`;
+    let versionInfo;
+    const deadline = Date.now() + 20000;
     while (Date.now() < deadline) {
-      if (child.exitCode !== null) throw new Error(`تعذر تشغيل المتصفح (exit code ${child.exitCode}).`);
-      try {
-        activePort = (await readFile(activePortPath, "utf8")).trim().split(/\r?\n/);
-        break;
-      } catch {
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      if (child.exitCode !== null) {
+        throw new Error(`تعذر تشغيل المتصفح (exit code ${child.exitCode}). ${stderr}`);
       }
+      try {
+        const response = await fetch(versionUrl);
+        if (response.ok) {
+          versionInfo = await response.json();
+          break;
+        }
+      } catch {
+        // Chromium may need a short time to bind its DevTools port.
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    if (!activePort?.[0] || !activePort?.[1]) throw new Error("انتهت مهلة انتظار منفذ Chromium DevTools.");
-    const versionResponse = await fetch(`http://127.0.0.1:${activePort[0]}/json/version`);
-    if (!versionResponse.ok) throw new Error("تعذر الاتصال بواجهة Chromium DevTools.");
-    const versionInfo = await versionResponse.json();
+    if (!versionInfo?.webSocketDebuggerUrl) {
+      throw new Error(`انتهت مهلة انتظار Chromium DevTools على المنفذ ${debugPort}. ${stderr}`);
+    }
     const client = new DevToolsClient(versionInfo.webSocketDebuggerUrl);
     await client.connect();
     const { targetId } = await client.send("Target.createTarget", { url: "about:blank" }, null);
