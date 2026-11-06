@@ -70,9 +70,27 @@ function isStackLayout(section) {
 // Question generation
 // ==========================================
 
+function manualPrintPosition(question) {
+  const position = question.print_position;
+  if (!position || typeof position !== "object" || Array.isArray(position)) return null;
+  const page = Number(position.page);
+  const x = Number(position.x_mm);
+  const y = Number(position.y_mm);
+  const width = position.width_mm == null ? null : Number(position.width_mm);
+  if (!Number.isInteger(page) || page < 0 || page > 99) return null;
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+  if (width !== null && (!Number.isFinite(width) || width <= 0)) return null;
+  return { page, x, y, width };
+}
+
 function questionHtml(number, question) {
   const id = escapeHtml(question.id);
   const type = String(question.type || "choice");
+  const position = manualPrintPosition(question);
+  const positionAttributes = position
+    ? ` data-position-page="${position.page}" data-position-x-mm="${position.x}" data-position-y-mm="${position.y}"` +
+      (position.width === null ? "" : ` data-position-width-mm="${position.width}"`)
+    : "";
 
   const [en, ar] = textPair(question.text, question.text_en, question.text_ar);
 
@@ -158,7 +176,7 @@ function questionHtml(number, question) {
   }
 
   return (
-    `<article class="q" data-id="${id}" data-type="${escapeHtml(type)}">` +
+    `<article class="q${position ? " manual-position" : ""}" data-id="${id}" data-type="${escapeHtml(type)}"${positionAttributes}>` +
     heading +
     content +
     `</article>`
