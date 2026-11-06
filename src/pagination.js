@@ -91,7 +91,6 @@ export function paginateInBrowser() {
 
     for (const question of manualQuestions) {
       if (Number(question.dataset.positionPage) !== pageIndex) continue;
-      question.style = question.style || {};
       const requestedWidth = Number.parseFloat(question.dataset.positionWidthMm);
       const widthMm = Number.isFinite(requestedWidth) && requestedWidth > 0
         ? Math.min(210, requestedWidth)
