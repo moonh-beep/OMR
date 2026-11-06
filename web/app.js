@@ -334,6 +334,13 @@ function renderQuestionBuilder() {
       createQuestionTool("نسخ السؤال", "▢", () => duplicateQuestion(index)),
       createQuestionTool("حذف السؤال", "×", () => removeQuestion(index), true)
     );
+    if (question.source.print_position) {
+      tools.append(createQuestionTool(
+        "إرجاع السؤال إلى التدفق التلقائي",
+        "↶",
+        () => updateManualQuestionPosition(question.id, null)
+      ));
+    }
     heading.append(number, id, tools);
 
     const fields = document.createElement("div");
@@ -600,6 +607,30 @@ async function refreshPreviewDocument(survey = null) {
   return result;
 }
 
+function updateManualQuestionPosition(questionId, position) {
+  if (previewReorderPending || previewButton.disabled || generateButton.disabled) return;
+  const question = builderQuestions.find(item => item.id === questionId);
+  if (!question) return;
+
+  if (position) question.source.print_position = position;
+  else delete question.source.print_position;
+
+  syncBuilderToEditor();
+  renderQuestionBuilder();
+  focusPreviewQuestionAfterRefresh = questionId;
+  previewReorderPending = true;
+
+  setStatus(position
+    ? "تم تثبيت موضع السؤال على صفحة A4. جارٍ تحديث المعاينة..."
+    : "تم إرجاع السؤال إلى الترتيب التلقائي. جارٍ تحديث المعاينة...");
+  refreshPreviewDocument()
+    .then(() => setStatus(position
+      ? "تم حفظ موضع السؤال، وسيظهر في PDF وPNG وملف الإحداثيات."
+      : "تم إرجاع السؤال إلى التدفق التلقائي بنجاح.", "success"))
+    .catch(error => setStatus("تم حفظ التعديل، لكن تعذّر تحديث المعاينة: " + error.message, "error"))
+    .finally(() => { previewReorderPending = false; });
+}
+
 function reorderQuestionsFromPreview(orderedIds, movedQuestionId) {
   if (previewReorderPending || previewButton.disabled || generateButton.disabled) return;
   const currentIds = builderQuestions.map(question => question.id);
@@ -635,19 +666,19 @@ function installPreviewQuestionSorting() {
   try { doc = preview.contentDocument; } catch { return; }
   if (!doc?.body || doc.body.dataset.questionSortingReady === "true") return;
 
-  const questions = Array.from(doc.querySelectorAll(".page .body > .q[data-id]"));
+  const questions = Array.from(doc.querySelectorAll(".page .q[data-id]"));
   if (!questions.length) return;
 
   const style = doc.createElement("style");
   style.textContent = [
     ".page .body { overflow: visible; }",
     ".q.preview-sortable { position: relative; transition: opacity .12s ease; }",
+    ".page > .q.manual-position.preview-sortable { position: absolute; }",
     ".preview-sort-handle { position:absolute; left:-53px; top:0; z-index:8; display:grid; place-items:center; width:23px; height:27px; padding:0; border:1px solid #d5e0de; border-radius:6px; background:#f7fbfa; color:#50736e; box-shadow:0 1px 4px rgba(20,45,42,.12); font:700 16px/1 Arial,sans-serif; cursor:grab; touch-action:none; user-select:none; -webkit-user-select:none; opacity:.78; transition:background .14s ease,color .14s ease,opacity .14s ease,transform .14s ease; }",
     ".preview-sort-handle:hover,.preview-sort-handle:focus-visible { opacity:1; background:#e7f2f0; color:#1f625b; transform:scale(1.05); outline:2px solid rgba(40,100,95,.22); outline-offset:2px; }",
     ".preview-sort-handle:active { cursor:grabbing; }",
     ".q.preview-sort-source { opacity:.3; }",
-    ".preview-sort-marker { position:relative; z-index:7; height:0; min-height:0; margin:2mm 0; border-top:2px solid #28645f; pointer-events:none; }",
-    ".preview-sort-marker::after { content:''; position:absolute; top:-5px; inset-inline-start:-3px; width:8px; height:8px; border-radius:50%; background:#28645f; }",
+    ".preview-sort-marker { position:absolute; z-index:7; box-sizing:border-box; border:2px dashed #28645f; border-radius:2px; background:rgba(40,100,95,.08); pointer-events:none; }",
     ".preview-sort-active { cursor:grabbing !important; user-select:none !important; }",
     "@media print { .preview-sort-handle,.preview-sort-marker { display:none !important; } }"
   ].join("\n");
@@ -661,59 +692,60 @@ function installPreviewQuestionSorting() {
     doc.body.classList.remove("preview-sort-active");
     state.question.classList.remove("preview-sort-source");
 
-    if (cancelled || !state.didMove || !state.marker.parentNode) {
+    const page = state.marker.parentElement;
+    if (cancelled || !state.didMove || !page?.classList.contains("page")) {
       state.marker.remove();
       return;
     }
 
-    state.marker.parentNode.insertBefore(state.question, state.marker);
+    const pageRect = page.getBoundingClientRect();
+    const pxPerMmX = pageRect.width / 210;
+    const pxPerMmY = pageRect.height / 297;
+    const xMm = Number.parseFloat(state.marker.style.left || "0") / pxPerMmX;
+    const yMm = Number.parseFloat(state.marker.style.top || "0") / pxPerMmY;
+    const widthMm = Number.parseFloat(state.marker.style.width || "0") / pxPerMmX;
+    const position = {
+      page: Math.max(0, Number(page.dataset.page) - 1),
+      x_mm: Math.round(xMm * 100) / 100,
+      y_mm: Math.round(yMm * 100) / 100,
+      width_mm: Math.round(widthMm * 100) / 100
+    };
     state.marker.remove();
-    const orderedIds = Array.from(doc.querySelectorAll(".page .body > .q[data-id]"))
-      .map(question => question.dataset.id);
-    reorderQuestionsFromPreview(orderedIds, state.question.dataset.id);
+    updateManualQuestionPosition(state.question.dataset.id, position);
   }
 
   function updateDropMarker(state, event) {
     const hit = doc.elementFromPoint(event.clientX, event.clientY);
-    const targetQuestion = hit?.closest?.(".q[data-id]") || null;
-    const targetBody = hit?.closest?.(".body") ||
-      targetQuestion?.parentElement?.closest?.(".body") || null;
-    if (!targetBody) return;
+    const targetPage = hit?.closest?.(".page") || null;
+    if (!targetPage) return;
 
-    let anchor = targetQuestion && targetQuestion !== state.question ? targetQuestion : null;
-    if (!anchor) {
-      const candidates = Array.from(targetBody.querySelectorAll(":scope > .q[data-id]"))
-        .filter(question => question !== state.question);
-      if (candidates.length) {
-        anchor = candidates.reduce((nearest, candidate) => {
-          const rect = candidate.getBoundingClientRect();
-          const distance = Math.abs(rect.top + rect.height / 2 - event.clientY);
-          if (!nearest || distance < nearest.distance) return { question: candidate, distance };
-          return nearest;
-        }, null)?.question || null;
-      }
-    }
+    const pageRect = targetPage.getBoundingClientRect();
+    const width = Math.min(state.questionRect.width, pageRect.width);
+    const height = Math.min(state.questionRect.height, pageRect.height);
+    const maxLeft = Math.max(0, pageRect.width - width);
+    const maxTop = Math.max(0, pageRect.height - height);
+    const left = Math.max(0, Math.min(maxLeft, event.clientX - pageRect.left - state.grabOffsetX));
+    const top = Math.max(0, Math.min(maxTop, event.clientY - pageRect.top - state.grabOffsetY));
 
-    if (anchor) {
-      const rect = anchor.getBoundingClientRect();
-      const insertAfter = event.clientY > rect.top + rect.height / 2;
-      const reference = insertAfter ? anchor.nextSibling : anchor;
-      if (reference !== state.marker && (state.marker.parentNode !== targetBody || state.marker.nextSibling !== reference)) {
-        targetBody.insertBefore(state.marker, reference);
-      }
-    } else if (state.marker.parentNode !== targetBody || state.marker !== targetBody.lastElementChild) {
-      targetBody.append(state.marker);
-    }
+    if (state.marker.parentElement !== targetPage) targetPage.append(state.marker);
+    state.marker.style.left = left + "px";
+    state.marker.style.top = top + "px";
+    state.marker.style.width = width + "px";
+    state.marker.style.height = height + "px";
   }
 
   function beginDrag(question, handle, event) {
     if (event.button !== 0 || previewReorderPending || previewButton.disabled || generateButton.disabled) return;
     event.preventDefault();
+    const questionRect = question.getBoundingClientRect();
     const state = {
       question,
+      questionRect,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
+      grabOffsetX: event.clientX - questionRect.left,
+      grabOffsetY: event.clientY - questionRect.top,
       didMove: false,
       marker: doc.createElement("div"),
       onMove: null,
@@ -757,15 +789,14 @@ function installPreviewQuestionSorting() {
     handle.type = "button";
     handle.className = "preview-sort-handle";
     handle.textContent = "⠿";
-    handle.title = "اسحب لإعادة ترتيب السؤال";
-    handle.setAttribute("aria-label", "إعادة ترتيب السؤال " + question.dataset.id + ". استخدم السهم الأعلى أو الأسفل للتحريك.");
+    handle.title = "اسحب السؤال إلى موضع ثابت داخل صفحة A4";
+    handle.setAttribute("aria-label", "تثبيت موضع السؤال " + question.dataset.id + ". استخدم السهم الأعلى أو الأسفل لإعادة الترتيب.");
     handle.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown");
     handle.addEventListener("pointerdown", event => beginDrag(question, handle, event));
     handle.addEventListener("keydown", event => {
       if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
       event.preventDefault();
-      const ids = Array.from(doc.querySelectorAll(".page .body > .q[data-id]"))
-        .map(item => item.dataset.id);
+      const ids = builderQuestions.map(item => item.id);
       const index = ids.indexOf(question.dataset.id);
       const next = index + (event.key === "ArrowUp" ? -1 : 1);
       if (index < 0 || next < 0 || next >= ids.length) return;
