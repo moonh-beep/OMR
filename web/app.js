@@ -824,7 +824,7 @@ previewButton.addEventListener("click", async () => {
     previewButton.disabled = true;
     setStatus("جارٍ قياس عناصر الصفحة وتجهيز المعاينة...");
     await refreshPreviewDocument();
-    setStatus("تم تحديث المعاينة بنجاح. اسحب مقبض السؤال لتغيير ترتيبه.", "success");
+    setStatus("تم تحديث المعاينة بنجاح. اسحب مقبض السؤال إلى موضعه المطلوب على الصفحة.", "success");
   } catch (error) {
     setStatus(error.message, "error");
   } finally {
