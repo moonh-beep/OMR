@@ -13,7 +13,14 @@ export function paginateInBrowser() {
   const bodyTopMm = pageMarginMm + 4;
   const bodyBottomMm = pageMarginMm + 3;
   const availableHeight = (297 - bodyTopMm - bodyBottomMm) * mmToCssPx;
-  const elements = [...measure.children];
+  const allElements = [...measure.children];
+  const manualQuestions = allElements.filter((element) =>
+    element.classList.contains("q") &&
+    Number.isInteger(Number(element.dataset.positionPage)) &&
+    Number(element.dataset.positionPage) >= 0
+  );
+  const manualQuestionSet = new Set(manualQuestions);
+  const elements = allElements.filter((element) => !manualQuestionSet.has(element));
   const pages = [];
   let current = [];
   let used = 0;
@@ -32,7 +39,11 @@ export function paginateInBrowser() {
   for (let index = 0; index < elements.length; index++) {
     const element = elements[index];
     let group = [element];
-    if (element.classList.contains("section-title") && elements[index + 1]?.classList.contains("q")) {
+    if (
+      element.classList.contains("section-title") &&
+      elements[index + 1]?.classList.contains("q") &&
+      !manualQuestionSet.has(elements[index + 1])
+    ) {
       const combined = outerHeight(element) + outerHeight(elements[index + 1]);
       if (combined <= availableHeight) {
         group = [element, elements[index + 1]];
@@ -51,6 +62,13 @@ export function paginateInBrowser() {
   }
   addPage();
 
+  const lastManualPage = manualQuestions.reduce(
+    (last, question) => Math.max(last, Number(question.dataset.positionPage)),
+    -1
+  );
+  while (pages.length <= lastManualPage) pages.push([]);
+
+  const mmToPx = mmToCssPx;
   pages.forEach((pageElements, pageIndex) => {
     const page = document.createElement("section");
     page.className = "page";
@@ -70,6 +88,28 @@ export function paginateInBrowser() {
     body.className = "body";
     for (const element of pageElements) body.appendChild(element);
     page.appendChild(body);
+
+    for (const question of manualQuestions) {
+      if (Number(question.dataset.positionPage) !== pageIndex) continue;
+      question.style = question.style || {};
+      const requestedWidth = Number.parseFloat(question.dataset.positionWidthMm);
+      const widthMm = Number.isFinite(requestedWidth) && requestedWidth > 0
+        ? Math.min(210, requestedWidth)
+        : Math.max(1, 210 - pageMarginMm * 2);
+      question.style.width = `${widthMm}mm`;
+      const questionHeightMm = question.getBoundingClientRect().height / mmToPx;
+      const maxLeftMm = Math.max(0, 210 - widthMm);
+      const maxTopMm = Math.max(0, 297 - questionHeightMm);
+      const requestedLeft = Number.parseFloat(question.dataset.positionXMm) || 0;
+      const requestedTop = Number.parseFloat(question.dataset.positionYMm) || 0;
+      const leftMm = Math.min(maxLeftMm, Math.max(0, requestedLeft));
+      const topMm = Math.min(maxTopMm, Math.max(0, requestedTop));
+      question.style.position = "absolute";
+      question.style.left = `${leftMm}mm`;
+      question.style.top = `${topMm}mm`;
+      question.style.zIndex = "2";
+      page.appendChild(question);
+    }
 
     const footer = document.createElement("footer");
     footer.className = "foot";
