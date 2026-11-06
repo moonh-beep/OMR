@@ -167,11 +167,12 @@ test("builder preserves section layout metadata and exports editable source JSON
 });
 
 
-test("preview exposes smooth pointer-based drag sorting for whole questions", () => {
+test("preview drag-and-drop saves the exact question position on an A4 page", () => {
   assert.match(html, /id="preview-sort-help"/);
+  assert.match(html, /حتى ضمن الهوامش خارج منطقة النص/);
   assert.match(editorJs, /function installPreviewQuestionSorting/);
   assert.match(editorJs, /function updateDropMarker/);
-  assert.match(editorJs, /function reorderQuestionsFromPreview/);
+  assert.match(editorJs, /function updateManualQuestionPosition/);
   assert.match(editorJs, /pointerdown/);
   assert.match(editorJs, /pointermove/);
   assert.match(editorJs, /pointerup/);
@@ -179,10 +180,25 @@ test("preview exposes smooth pointer-based drag sorting for whole questions", ()
   assert.match(editorJs, /touch-action:none/);
   assert.match(editorJs, /doc\.defaultView\.scrollBy\(0, -16\)/);
   assert.match(editorJs, /doc\.defaultView\.scrollBy\(0, 16\)/);
-  assert.match(editorJs, /\.page \.body > \.q\[data-id\]/);
+  assert.match(editorJs, /\.page \.q\[data-id\]/);
+  assert.match(editorJs, /grabOffsetX/);
+  assert.match(editorJs, /grabOffsetY/);
+  assert.match(editorJs, /x_mm:/);
+  assert.match(editorJs, /y_mm:/);
+  assert.match(editorJs, /width_mm:/);
+  assert.match(editorJs, /state\.marker\.style\.left/);
+  assert.match(editorJs, /pageRect\.width - width/);
+  assert.match(editorJs, /question\.source\.print_position = position/);
   assert.match(editorJs, /refreshPreviewDocument\(\)/);
   assert.match(editorJs, /previewReorderPending/);
-  assert.ok(editorJs.includes("state.marker.parentNode !== targetBody || state.marker.nextSibling !== reference"));
+  assert.doesNotMatch(editorJs, /state\.marker\.parentNode\.insertBefore\(state\.question, state\.marker\)/);
+});
+
+test("manually positioned questions can be restored to automatic pagination", () => {
+  assert.match(editorJs, /if \(question\.source\.print_position\)/);
+  assert.match(editorJs, /إرجاع السؤال إلى التدفق التلقائي/);
+  assert.match(editorJs, /delete question\.source\.print_position/);
+  assert.match(editorJs, /question\.source\.print_position = position/);
 });
 
 test("preview question sorting supports keyboard movement and preserves question IDs", () => {
