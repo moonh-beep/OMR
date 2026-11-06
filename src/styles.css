@@ -201,6 +201,14 @@ body.survey-document {
   break-inside: avoid;
   page-break-inside: avoid;
 }
+
+/* Explicitly positioned questions are placed relative to the physical A4 page,
+   not constrained by the normal text-area margins. */
+.q.manual-position {
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+}
 .qt {
   width: 100%;
   display: grid;
