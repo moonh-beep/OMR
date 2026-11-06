@@ -20,6 +20,15 @@ export function paginateInBrowser() {
     Number(element.dataset.positionPage) >= 0
   );
   const manualQuestionSet = new Set(manualQuestions);
+  const manualHeadings = new Map();
+  for (const question of manualQuestions) {
+    const index = allElements.indexOf(question);
+    const heading = index > 0 ? allElements[index - 1] : null;
+    if (heading?.classList.contains("section-title")) {
+      manualHeadings.set(question, heading);
+      manualQuestionSet.add(heading);
+    }
+  }
   const elements = allElements.filter((element) => !manualQuestionSet.has(element));
   const pages = [];
   let current = [];
@@ -105,7 +114,26 @@ export function paginateInBrowser() {
       const requestedLeft = Number.parseFloat(question.dataset.positionXMm) || 0;
       const requestedTop = Number.parseFloat(question.dataset.positionYMm) || 0;
       const leftMm = Math.min(maxLeftMm, Math.max(0, requestedLeft));
-      const topMm = Math.min(maxTopMm, Math.max(0, requestedTop));
+      let topMm = Math.min(maxTopMm, Math.max(0, requestedTop));
+
+      const heading = manualHeadings.get(question);
+      if (heading) {
+        heading.style.width = `${widthMm}mm`;
+        const headingHeightMm = heading.getBoundingClientRect().height / mmToPx;
+        const headingMarginBottomMm = (parseFloat(getComputedStyle(heading).marginBottom) || 0) / mmToPx;
+        const groupOffsetMm = headingHeightMm + headingMarginBottomMm;
+        if (questionHeightMm + groupOffsetMm > 297 + 0.5) {
+          throw new Error(`عنوان القسم مع السؤال ${question.dataset.id || "غير معروف"} لا يتسعان معاً في صفحة A4 واحدة.`);
+        }
+        topMm = Math.min(maxTopMm, Math.max(groupOffsetMm, topMm));
+        heading.style.position = "absolute";
+        heading.style.left = `${leftMm}mm`;
+        heading.style.top = `${Math.max(0, topMm - groupOffsetMm)}mm`;
+        heading.style.margin = "0";
+        heading.style.zIndex = "2";
+        page.appendChild(heading);
+      }
+
       question.style.position = "absolute";
       question.style.left = `${leftMm}mm`;
       question.style.top = `${topMm}mm`;
