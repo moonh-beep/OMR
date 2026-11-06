@@ -87,6 +87,26 @@ test("a single-language title expands across the full title width", async () => 
   assert.doesNotMatch(html, /class="hd-ar/);
 });
 
+test("buildDocument preserves manual question page coordinates for pagination and export", async () => {
+  const positionedSurvey = {
+    ...survey,
+    sections: [{
+      ...survey.sections[0],
+      questions: [{
+        ...survey.sections[0].questions[0],
+        print_position: { page: 1, x_mm: 4.5, y_mm: 9.25, width_mm: 165 },
+      }],
+    }],
+  };
+  const html = await buildDocument(positionedSurvey);
+  assert.match(
+    html,
+    /class="q manual-position" data-id="age" data-type="choice" data-position-page="1" data-position-x-mm="4\.5" data-position-y-mm="9\.25" data-position-width-mm="165"/,
+  );
+  const css = await readFile(new URL("../src/styles.css", import.meta.url), "utf8");
+  assert.match(css, /\.q\.manual-position\s*\{\s*position:\s*absolute/);
+});
+
 test("title remains visible by default for existing survey JSON files", async () => {
   const legacySurvey = { ...survey, layout_settings: {} };
   const html = await buildDocument(legacySurvey);
