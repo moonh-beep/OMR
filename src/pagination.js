@@ -97,6 +97,9 @@ export function paginateInBrowser() {
         : Math.max(1, 210 - pageMarginMm * 2);
       question.style.width = `${widthMm}mm`;
       const questionHeightMm = question.getBoundingClientRect().height / mmToPx;
+      if (questionHeightMm > 297 + 0.5) {
+        throw new Error(`السؤال ${question.dataset.id || "غير معروف"} أطول من صفحة A4 ولا يمكن تثبيت موضعه دون قص المحتوى.`);
+      }
       const maxLeftMm = Math.max(0, 210 - widthMm);
       const maxTopMm = Math.max(0, 297 - questionHeightMm);
       const requestedLeft = Number.parseFloat(question.dataset.positionXMm) || 0;
