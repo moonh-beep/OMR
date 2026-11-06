@@ -9,6 +9,7 @@ function fakeElement(classes = [], height = 10, dataset = {}) {
     classList: { contains: (name) => classes.includes(name) },
     dataset,
     children,
+    style: {},
     dir: "",
     innerHTML: "",
     getBoundingClientRect: () => ({ height }),
@@ -67,6 +68,45 @@ test("keeps a section heading with the first question in that section", () => {
   assert.equal(result.pageCount, 2);
   const secondBody = pages[1].children.find((child) => child.className === "body");
   assert.deepEqual(secondBody.children, [heading, question]);
+});
+
+test("keeps manually positioned questions on their selected page and outside text margins", () => {
+  const flowQuestion = fakeElement(["q"], 30, { id: "flow-question" });
+  const positionedQuestion = fakeElement(
+    ["q", "manual-position"],
+    40,
+    {
+      id: "positioned-question",
+      positionPage: "1",
+      positionXMm: "4",
+      positionYMm: "8",
+      positionWidthMm: "80",
+    },
+  );
+  const { result, pages } = runPagination([flowQuestion, positionedQuestion]);
+  assert.equal(result.pageCount, 2);
+  assert.ok(pages[1].children.includes(positionedQuestion));
+  assert.equal(positionedQuestion.style.position, "absolute");
+  assert.equal(positionedQuestion.style.left, "4mm");
+  assert.equal(positionedQuestion.style.top, "8mm");
+  assert.equal(positionedQuestion.style.width, "80mm");
+});
+
+test("clamps manually positioned questions to the physical A4 page, not the text margins", () => {
+  const positionedQuestion = fakeElement(
+    ["q", "manual-position"],
+    80,
+    {
+      id: "edge-question",
+      positionPage: "0",
+      positionXMm: "200",
+      positionYMm: "296",
+      positionWidthMm: "80",
+    },
+  );
+  const { pages } = runPagination([positionedQuestion]);
+  assert.equal(positionedQuestion.style.left, "130mm");
+  assert.ok(Number.parseFloat(positionedQuestion.style.top) < 297);
 });
 
 test("rejects a question that cannot fit on one page instead of splitting it", () => {
